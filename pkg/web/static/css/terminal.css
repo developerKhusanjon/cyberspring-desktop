@@ -1,0 +1,528 @@
+/* ==========================================================================
+   CyberSpring — Detection Engineering Studio & Terminal CSS (Image 2)
+   ========================================================================== */
+
+.terminal-window {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  color: #1e293b;
+  min-height: 720px;
+}
+
+/* macOS Window Titlebar */
+.terminal-titlebar {
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.traffic-lights {
+  display: flex;
+  gap: 7px;
+}
+
+.traffic-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.traffic-dot.close { background: #ff5f56; border: 1px solid #e0443e; }
+.traffic-dot.min   { background: #ffbd2e; border: 1px solid #dea123; }
+.traffic-dot.max   { background: #27c93f; border: 1px solid #1aab29; }
+
+.titlebar-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+}
+
+/* Sub-Mode Tabs inside Window Titlebar */
+.terminal-mode-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.terminal-mode-tab {
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.terminal-mode-tab.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.titlebar-timer {
+  background: #0f172a;
+  color: #fbbf24;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* Split Panes Layout for Agent Mode */
+.terminal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  background: #ffffff;
+}
+
+/* Left Pane: Agent Session */
+.agent-pane {
+  border-right: 1px solid #e2e8f0;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  background: #fafbfc;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-y: auto;
+  max-height: 640px;
+}
+
+.pane-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.prompt-line {
+  color: #0f172a;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prompt-path {
+  color: #0284c7;
+}
+
+.agent-prompt-wrapper {
+  margin-bottom: 16px;
+}
+
+.agent-command-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #0f172a;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 64px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.agent-command-textarea:focus {
+  border-color: #0284c7;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.agent-preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.agent-preset-chip {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.agent-preset-chip:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+/* Agent Steps Timeline */
+.agent-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.agent-step-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-bullet {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.step-bullet.blue { color: #0284c7; }
+.step-bullet.amber { color: #f59e0b; }
+.step-bullet.green { color: #10b981; }
+
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.step-title {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.step-meta {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.step-quote-box {
+  background: #f8fafc;
+  border-left: 3px solid #f59e0b;
+  padding: 8px 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #334155;
+  border-radius: 0 6px 6px 0;
+  line-height: 1.5;
+}
+
+.agent-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 13px;
+  background: #10b981;
+  vertical-align: middle;
+  margin-left: 4px;
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Right Pane: Rule & Test Editors */
+.rules-pane {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #ffffff;
+  overflow-y: auto;
+  max-height: 640px;
+}
+
+.rule-viewer-block {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.file-header-tag {
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editor-textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.45;
+  background: #ffffff;
+  color: #0f172a;
+  border: none;
+  resize: vertical;
+  outline: none;
+  white-space: pre;
+}
+
+/* Backtest Progress & Outcome */
+.backtest-footer {
+  background: #fafbfc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.backtest-header-text {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.stage-badges-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  color: #334155;
+  margin-bottom: 10px;
+}
+
+.stage-tag {
+  font-weight: 700;
+  color: #0284c7;
+}
+
+.backtest-progress-track {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.backtest-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7 0%, #10b981 100%);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.backtest-outcome-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.outcome-fires {
+  color: #0f172a;
+}
+
+.outcome-budget-tag {
+  color: #059669;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   INTERACTIVE CLI CONSOLE PANE (FULL-SCREEN TERMINAL)
+   ========================================================================== */
+
+.cli-console-pane {
+  background: #090d16;
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 600px;
+  padding: 0;
+  font-family: var(--font-mono);
+}
+
+.cli-quick-bar {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.quick-cmd-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.quick-cmd-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.cli-output-viewport {
+  flex: 1;
+  padding: 16px 20px;
+  overflow-y: auto;
+  max-height: 520px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.cli-output-viewport pre {
+  margin: 0;
+  font-family: inherit;
+  color: inherit;
+}
+
+.cli-input-container {
+  background: #040711;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cli-prompt-label {
+  color: #38bdf8;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.cli-input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.cli-run-btn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cli-clear-btn {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cli-clear-btn:hover {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+/* Action Bar below Terminal */
+.terminal-actions-bar {
+  padding: 12px 16px;
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-primary {
+  background: var(--crimson-gradient);
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 23, 68, 0.35);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+}

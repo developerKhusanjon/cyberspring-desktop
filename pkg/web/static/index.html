@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberSpring — SOC Controlling Center, SAST Scanner & Interactive Terminal</title>
+  <link rel="stylesheet" href="css/glass.css">
+  <link rel="stylesheet" href="css/terminal.css">
+  <style>
+    /* SAST & Utility Inlines */
+    .sast-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .sast-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .sast-metric-box {
+      background: var(--glass-card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--glass-shadow);
+    }
+    .sast-metric-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .sast-metric-num.crit { color: #e11d48; }
+    .sast-metric-num.high { color: #f97316; }
+    .sast-metric-num.med  { color: #eab308; }
+    .sast-metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .finding-item-row {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--glass-border-subtle);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .finding-item-row:hover, .finding-item-row.active {
+      background: #ffffff;
+      border-color: #0284c7;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+      transform: translateX(3px);
+    }
+    .finding-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .finding-sev-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .finding-sev-badge.critical { background: #fee2e2; color: #b91c1c; }
+    .finding-sev-badge.high     { background: #ffedd5; color: #c2410c; }
+    .finding-sev-badge.medium   { background: #fef9c3; color: #854d0e; }
+    .finding-sev-badge.low      { background: #f1f5f9; color: #475569; }
+    .finding-rule-id {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .finding-row-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 3px;
+    }
+    .finding-row-loc {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #64748b;
+    }
+    .detail-header-card {
+      background: var(--glass-card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      box-shadow: var(--glass-shadow);
+      margin-bottom: 16px;
+    }
+    .detail-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 4px;
+    }
+    .detail-tag {
+      background: #e2e8f0;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+    }
+    .detail-meta-loc {
+      margin: 12px 0 8px 0;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .detail-desc {
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.5;
+    }
+    .code-snippet-box, .remedy-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--glass-shadow);
+    }
+    .snippet-header, .remedy-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .snippet-pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+    .diff-pre {
+      background: #f8fafc;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+      padding: 14px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+    .remedy-diff-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #059669;
+      margin-bottom: 6px;
+    }
+    .sast-filter-pills-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .sast-filter-pill {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+    }
+    .sast-filter-pill.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+    .incident-feed-row {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .incident-feed-row:hover {
+      background: rgba(2, 132, 199, 0.05);
+      border-radius: 6px;
+    }
+    .incident-feed-row:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Top Navigation Header -->
+    <header class="top-navbar">
+      <div class="brand-section">
+        <div class="brand-icon">🌿</div>
+        <div>
+          <div class="brand-title">CyberSpring</div>
+          <div class="brand-subtitle">Detection Engineering & SOAR Controlling Center</div>
+        </div>
+      </div>
+
+      <!-- Navigation Pills -->
+      <nav class="nav-pills">
+        <button class="nav-pill active" data-view="view-overview">Overview</button>
+        <button class="nav-pill" data-view="view-terminal">Terminal Studio <span class="pill-badge">CLI & Agent</span></button>
+        <button class="nav-pill" data-view="view-sast">SAST Scanner <span id="sastNavBadge" class="pill-badge">10 Vulns</span></button>
+        <button class="nav-pill" data-view="view-alerts">Key Alerts</button>
+        <button class="nav-pill" data-view="view-executions">Executions</button>
+      </nav>
+
+      <!-- User & Platform Controls -->
+      <div class="nav-actions">
+        <div style="font-size: 11px; font-weight: 600; color: #334155; background: rgba(255,255,255,0.7); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--glass-border);">
+          Cross-Platform · Darwin / Windows / Linux
+        </div>
+        <button class="btn-secondary" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.35); font-size: 11px; padding: 4px 10px; font-weight: 700;" title="Down / Stop Server" onclick="window.CyberApp.shutdownServer()">
+          🛑 Down Server
+        </button>
+        <button class="icon-btn" title="System Notifications" onclick="window.CyberApp.showToast('All 7 telemetry streams operational.')">
+          🔔
+          <span class="badge-dot"></span>
+        </button>
+        <div class="user-avatar-btn">
+          <div class="avatar-img">SOC</div>
+          <span class="user-name">Engineer</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Welcome Greeting Banner -->
+    <section class="greeting-banner">
+      <div>
+        <h1 class="greeting-title">Welcome to CyberSpring SOC Controlling Center</h1>
+        <p class="greeting-subtitle">Full-spectrum detection engineering automation, source code vulnerability scanning & incident orchestration.</p>
+      </div>
+      <div class="banner-stats">
+        <div class="pulse-indicator">
+          <span class="pulse-dot"></span>
+          Live Ingestion · 7 Active Cloud & Perimeter Feeds
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 1: OVERVIEW DASHBOARD -->
+    <main id="view-overview" class="view-section active-view">
+      <div class="dashboard-grid">
+
+        <!-- Central Threat Radar Card (Hero Section) -->
+        <div class="hero-radar-card">
+          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-weight: 700; font-size: 15px; color: #1e293b;">Perimeter Defense & Threat Interception Radar</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Click any node to inspect telemetry</div>
+          </div>
+
+          <div id="radarContainer" class="radar-canvas-container">
+            <canvas id="radarCanvas"></canvas>
+            
+            <!-- Central Badge (68% Threats Blocked) -->
+            <div class="radar-center-badge">
+              <div id="threatsBlockedVal" class="threats-blocked-val">68%</div>
+              <div class="threats-blocked-label">Threats Blocked</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Widgets Column -->
+        <div class="side-widgets-column">
+
+          <!-- Open Incidents Widget -->
+          <div class="glass-widget">
+            <div class="widget-header">
+              <span class="widget-title">Open Incidents</span>
+              <button class="widget-expand-btn" title="View All Alerts" onclick="document.querySelector('[data-view=view-alerts]').click()">↗</button>
+            </div>
+            <div class="incident-metric-row">
+              <div id="openIncidentsCount" class="incident-big-number">7</div>
+              <div>
+                <div id="incidentTrendPercent" class="incident-trend">↑ +35%</div>
+                <div class="incident-trend-sub">vs. previous 24h</div>
+              </div>
+            </div>
+            <div class="severity-chips-grid">
+              <div class="severity-chip" style="cursor: pointer;" onclick="window.CyberApp.filterIncidentsBySev('High')">
+                <div class="chip-label"><span class="chip-dot crit"></span> High</div>
+                <div id="chipCritCount" class="chip-count">2</div>
+              </div>
+              <div class="severity-chip" style="cursor: pointer;" onclick="window.CyberApp.filterIncidentsBySev('Medium')">
+                <div class="chip-label"><span class="chip-dot med"></span> Medium</div>
+                <div id="chipMedCount" class="chip-count">2</div>
+              </div>
+              <div class="severity-chip" style="cursor: pointer;" onclick="window.CyberApp.filterIncidentsBySev('Low')">
+                <div class="chip-label"><span class="chip-dot low"></span> Low</div>
+                <div id="chipLowCount" class="chip-count">2</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Automation / Playbooks Widget -->
+          <div class="glass-widget dark-playbook-widget">
+            <div class="widget-header">
+              <span class="widget-title">SOAR Automation / Playbooks</span>
+              <button class="widget-expand-btn" style="color: #94a3b8;" onclick="document.querySelector('[data-view=view-executions]').click()">↗</button>
+            </div>
+            <div id="playbooksListContainer" class="playbook-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Bottom Status Row (Assets & Alerts Velocity) -->
+      <div class="bottom-cards-row">
+        <!-- Assets Card -->
+        <div class="glass-widget">
+          <div class="widget-header">
+            <span class="widget-title">Fleet Assets</span>
+            <span style="font-size: 11px; color: #10b981;">100% Operational</span>
+          </div>
+          <div class="asset-row">
+            <div class="asset-type">🖥️ Servers</div>
+            <span class="asset-badge">24 Healthy</span>
+          </div>
+          <div class="asset-row">
+            <div class="asset-type">💻 Workstations</div>
+            <span class="asset-badge">38 Healthy</span>
+          </div>
+        </div>
+
+        <!-- Alerts Velocity Card -->
+        <div class="glass-widget">
+          <div class="widget-header">
+            <span class="widget-title">Alert Velocity (24h)</span>
+            <span style="font-size: 11px; color: var(--text-muted);">Real-time Telemetry</span>
+          </div>
+          <div style="font-size: 12px; margin-bottom: 4px; display: flex; justify-content: space-between;">
+            <span>High Severity Signals</span>
+            <strong style="color: #ef4444;">↑ 20%</strong>
+          </div>
+          <div class="alert-meter-bar"><div class="alert-meter-fill fill-high"></div></div>
+
+          <div style="font-size: 12px; margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between;">
+            <span>Medium Severity Signals</span>
+            <strong style="color: #f59e0b;">↑ 8%</strong>
+          </div>
+          <div class="alert-meter-bar"><div class="alert-meter-fill fill-med"></div></div>
+        </div>
+
+        <!-- Live Incident Triage Stream -->
+        <div class="glass-widget">
+          <div class="widget-header">
+            <span class="widget-title">Security Feed & Incident Stream</span>
+            <span style="font-size: 11px; color: #0284c7;">Click row to triage</span>
+          </div>
+          <div id="incidentsFeedList" style="max-height: 110px; overflow-y: auto;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- VIEW 2: DETECTION ENGINEERING TERMINAL & CLI STUDIO -->
+    <section id="view-terminal" class="view-section">
+      <div class="terminal-window">
+        <!-- macOS Window Header Bar -->
+        <div class="terminal-titlebar">
+          <div class="titlebar-left">
+            <div class="traffic-lights">
+              <span class="traffic-dot close"></span>
+              <span class="traffic-dot min"></span>
+              <span class="traffic-dot max"></span>
+            </div>
+            <div class="titlebar-text">cyberspring-terminal — ~/detections</div>
+          </div>
+
+          <!-- Dual Mode Switcher Tabs -->
+          <div class="terminal-mode-tabs">
+            <button id="tabModeCLI" class="terminal-mode-tab active" onclick="window.CyberApp.terminal.switchTerminalMode('cli')">⚡ Interactive CLI Shell</button>
+            <button id="tabModeAgent" class="terminal-mode-tab" onclick="window.CyberApp.terminal.switchTerminalMode('agent')">🤖 Detection Agent Studio</button>
+          </div>
+
+          <div id="titlebarTimer" class="titlebar-timer">00:24</div>
+        </div>
+
+        <!-- MODE 1: INTERACTIVE CLI CONSOLE (Full Terminal View) -->
+        <div id="terminalCliContainer" class="cli-console-pane">
+          <!-- Quick Command Launcher Bar -->
+          <div class="cli-quick-bar">
+            <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">Quick Actions:</span>
+            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('scan test_samples/vulnerable_app')">⚡ scan test_samples/vulnerable_app</button>
+            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('test rules/vpn_password_spray.yml')">🧪 test rules</button>
+            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('agent &quot;Detect AWS root console login without MFA&quot;')">🤖 agent "AWS Root Login"</button>
+            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('report test_samples/vulnerable_app')">📄 generate reports</button>
+            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('status')">🛡️ status</button>
+            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('incidents')">🚨 incidents</button>
+            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('soar list')">⚡ soar list</button>
+            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('help')">❓ help</button>
+            <button class="quick-cmd-btn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="window.CyberApp.terminal.runCliPreset('down')">🛑 down</button>
+          </div>
+
+          <!-- Scrollable Output Viewport -->
+          <div id="cliOutputViewport" class="cli-output-viewport">
+            <pre id="cliOutputPre"></pre>
+          </div>
+
+          <!-- Command Input Row -->
+          <div class="cli-input-container">
+            <span class="cli-prompt-label">cyberspring@soc-hub:~$</span>
+            <input id="cliCommandInput" type="text" class="cli-input-field" placeholder="Type a command (e.g. scan, test, agent, report, help)..." autocomplete="off" spellcheck="false">
+            <button id="cliRunBtn" class="cli-run-btn">Run ⏎</button>
+            <button id="cliClearBtn" class="cli-clear-btn" onclick="window.CyberApp.terminal.clearCliOutput()">Clear</button>
+          </div>
+        </div>
+
+        <!-- MODE 2: DETECTION ENGINEERING AGENT STUDIO (Split Panes) -->
+        <div id="terminalAgentContainer" class="terminal-body" style="display: none;">
+
+          <!-- Left Pane: Agent Session -->
+          <div class="agent-pane">
+            <div class="pane-label">NATURAL LANGUAGE DETECTION AGENT</div>
+            
+            <div class="prompt-line">
+              <span class="prompt-path">~/detections $</span> agent
+            </div>
+
+            <!-- Editable Custom Agent Prompt Box -->
+            <div class="agent-prompt-wrapper">
+              <textarea id="agentCustomPromptInput" class="agent-command-textarea" spellcheck="false">Write a detection for password spraying against our VPN: failed logons across 10 or more distinct accounts from one source IP inside 10 minutes. Generate test cases, backtest it against the last 30 days of VPN auth logs, and report the false positive rate.</textarea>
+              <div class="agent-preset-chips">
+                <span style="font-size: 10px; color: var(--text-muted); align-self: center;">Presets:</span>
+                <span class="agent-preset-chip" onclick="window.CyberApp.terminal.loadAgentPreset('vpn')">VPN Spray (NPS)</span>
+                <span class="agent-preset-chip" onclick="window.CyberApp.terminal.loadAgentPreset('aws')">AWS Root Login (CloudTrail)</span>
+                <span class="agent-preset-chip" onclick="window.CyberApp.terminal.loadAgentPreset('k8s')">K8s Privileged Pod</span>
+                <span class="agent-preset-chip" onclick="window.CyberApp.terminal.loadAgentPreset('ssh')">Linux SSH Brute Force</span>
+              </div>
+            </div>
+
+            <!-- Dynamic Agent Steps -->
+            <div id="agentStepsList" class="agent-steps-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Right Pane: Rule YAML, Test Cases & Backtest -->
+          <div class="rules-pane">
+
+            <!-- Top: Rule YAML -->
+            <div class="rule-viewer-block">
+              <div class="file-header-tag">
+                <span>📄 rules/vpn_password_spray.yml</span>
+                <button class="btn-secondary" style="padding: 2px 8px; font-size: 10px;" onclick="window.CyberApp.terminal.saveRules()">💾 Save</button>
+              </div>
+              <textarea id="ruleEditor" class="editor-textarea" spellcheck="false"></textarea>
+            </div>
+
+            <!-- Middle: Test Cases YAML -->
+            <div class="rule-viewer-block">
+              <div class="file-header-tag">
+                <span>🧪 tests/vpn_password_spray_test.yml</span>
+              </div>
+              <textarea id="testEditor" class="editor-textarea" style="min-height: 100px;" spellcheck="false"></textarea>
+            </div>
+
+            <!-- Bottom: Historical Backtest -->
+            <div class="backtest-footer">
+              <div class="backtest-header-text">TESTS + HISTORICAL BACKTEST · 30 days telemetry stream</div>
+              <div id="stageBadgesRow" class="stage-badges-row">
+                <div>STAGE 1 · <span class="stage-tag">replay fixtures</span> attacks 4/4 fired · benign 2/2 quiet</div>
+                <div>STAGE 2 · <span class="stage-tag">historical backtest</span> - 412,806 events · 30 days</div>
+              </div>
+              <div class="backtest-progress-track">
+                <div id="backtestProgressBar" class="backtest-progress-bar" style="width: 100%;"></div>
+              </div>
+              <div id="backtestOutcomeRow" class="backtest-outcome-row">
+                <div class="outcome-fires">fires on 30 days of history: <strong>1</strong> - triaged: <strong>benign</strong></div>
+                <div class="outcome-budget-tag">false positives: 1 in 30 days — within budget</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Terminal Bottom Action Bar (Agent Mode) -->
+        <div id="terminalAgentActionsBar" class="terminal-actions-bar" style="display: none;">
+          <div style="display: flex; gap: 8px;">
+            <button id="runAgentBtn" class="btn-primary">⚡ Run Agent Session</button>
+            <button id="runReplayBtn" class="btn-secondary">▶ Run Replays</button>
+            <button id="runBacktestBtn" class="btn-secondary">📊 Backtest 30d History</button>
+          </div>
+          <button id="saveRulesBtn" class="btn-secondary">💾 Save YAML Rules</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: SAST SOURCE CODE VULNERABILITY SCANNER -->
+    <section id="view-sast" class="view-section">
+      <!-- Top Target Selector & Controls -->
+      <div class="glass-widget" style="padding: 20px 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 320px;">
+            <span style="font-weight: 700; font-size: 13px;">Target Path:</span>
+            <input id="sastTargetPath" type="text" value="test_samples/vulnerable_app" 
+                   style="flex: 1; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: var(--font-mono); font-size: 13px;">
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button id="sastScanBtn" class="btn-primary">⚡ Run Vulnerability Audit</button>
+            <button id="sastAddRuleBtn" class="btn-secondary" onclick="window.CyberApp.openCustomRuleModal()">➕ Custom Rule</button>
+            <button id="sastSarifBtn" class="btn-secondary">📥 SARIF 2.1.0</button>
+            <button id="sastHtmlReportBtn" class="btn-secondary">📄 HTML Report</button>
+            <button id="sastMdReportBtn" class="btn-secondary" onclick="window.open('/api/report/markdown')">📝 Markdown</button>
+            <button id="sastJsonReportBtn" class="btn-secondary" onclick="window.open('/api/report/json')">💾 JSON</button>
+          </div>
+        </div>
+
+        <!-- Quick Scope Preset Buttons -->
+        <div class="quick-preset-row">
+          <span style="font-size: 11px; font-weight: 600; color: #64748b;">Quick Targets:</span>
+          <button class="quick-preset-btn" onclick="window.CyberApp.sast.setTarget('test_samples/vulnerable_app')">📁 Sample App (test_samples/vulnerable_app)</button>
+          <button class="quick-preset-btn" onclick="window.CyberApp.sast.setTarget('.')">📦 Full Workspace (.)</button>
+          <button class="quick-preset-btn" onclick="window.CyberApp.sast.setTarget('pkg/')">⚙️ Go Core (pkg/)</button>
+          <button class="quick-preset-btn" onclick="window.CyberApp.sast.setTarget('rules/')">🛡️ Detection Rules (rules/)</button>
+        </div>
+      </div>
+
+      <!-- SAST Metrics -->
+      <div class="sast-metrics-grid" style="margin-top: 18px;">
+        <div class="sast-metric-box">
+          <div id="sastCritCount" class="sast-metric-num crit">4</div>
+          <div class="sast-metric-label">Critical Weaknesses</div>
+        </div>
+        <div class="sast-metric-box">
+          <div id="sastHighCount" class="sast-metric-num high">4</div>
+          <div class="sast-metric-label">High Severity</div>
+        </div>
+        <div class="sast-metric-box">
+          <div id="sastMedCount" class="sast-metric-num med">2</div>
+          <div class="sast-metric-label">Medium Severity</div>
+        </div>
+        <div class="sast-metric-box">
+          <div id="sastFilesCount" class="sast-metric-num">3</div>
+          <div class="sast-metric-label">Scanned Files</div>
+        </div>
+        <div class="sast-metric-box">
+          <div id="sastDuration" class="sast-metric-num" style="color: #0284c7;">1ms</div>
+          <div class="sast-metric-label">Scan Latency</div>
+        </div>
+      </div>
+
+      <!-- Main SAST Split Inspector -->
+      <div class="sast-layout">
+        <!-- Findings List -->
+        <div>
+          <!-- Search & Filter Controls -->
+          <div style="margin-bottom: 10px;">
+            <input id="sastSearchInput" type="text" placeholder="🔍 Search findings by rule, CWE, or file..." 
+                   style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 12px; margin-bottom: 8px;">
+          </div>
+          <div class="sast-filter-pills-row">
+            <button class="sast-filter-pill active" data-filter="ALL">All (<span id="filterAllCount">10</span>)</button>
+            <button class="sast-filter-pill" data-filter="CRITICAL">Critical</button>
+            <button class="sast-filter-pill" data-filter="HIGH">High</button>
+            <button class="sast-filter-pill" data-filter="MEDIUM">Medium</button>
+          </div>
+          <div id="sastFindingsList" style="max-height: 540px; overflow-y: auto;">
+            <!-- Populated via sast.js -->
+          </div>
+        </div>
+
+        <!-- Finding Detail & Remediation Inspector -->
+        <div id="sastDetailView">
+          <!-- Populated via sast.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: KEY ALERTS -->
+    <section id="view-alerts" class="view-section">
+      <div class="glass-widget">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div>
+            <h2 style="font-size: 20px;">Key Alerts Stream & Perimeter Telemetry</h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Aggregated detection signals across cloud, identity, and perimeter switches.</p>
+          </div>
+          <button class="btn-primary" onclick="window.CyberApp.triggerPlaybook('pb-ipblock')">⚡ Execute Automated Containment</button>
+        </div>
+        
+        <div id="alertsStreamContainer" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Dynamically populated or enhanced -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: EXECUTIONS & SOAR PLAYBOOKS -->
+    <section id="view-executions" class="view-section">
+      <div class="glass-widget">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div>
+            <h2 style="font-size: 20px;">SOAR Automation & Playbook Executions</h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Orchestrated incident response playbooks keeping your SOC running at machine speed.</p>
+          </div>
+          <button class="btn-secondary" onclick="window.CyberApp.fetchPlaybooks()">🔄 Refresh Status</button>
+        </div>
+        
+        <div id="executionsPlaybookGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+          <!-- Populated via app.js -->
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL 1: TELEMETRY NODE DETAILS (RADAR HUD CLICK) -->
+  <div id="telemetryModal" class="cyber-modal-backdrop">
+    <div class="cyber-modal-card">
+      <div class="cyber-modal-header">
+        <span id="telemetryModalTitle" class="cyber-modal-title">Telemetry Node Details</span>
+        <button class="cyber-modal-close" onclick="window.CyberApp.closeModals()">✕</button>
+      </div>
+      <div class="cyber-modal-body">
+        <div id="telemetryModalContent"></div>
+      </div>
+      <div class="cyber-modal-footer">
+        <button class="btn-secondary" onclick="window.CyberApp.closeModals()">Close</button>
+        <button id="telemetryActionBtn" class="btn-primary">Apply Defensive Policy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: INCIDENT INVESTIGATION & SOAR ACTION -->
+  <div id="incidentModal" class="cyber-modal-backdrop">
+    <div class="cyber-modal-card">
+      <div class="cyber-modal-header">
+        <span id="incidentModalTitle" class="cyber-modal-title">Security Incident Investigation</span>
+        <button class="cyber-modal-close" onclick="window.CyberApp.closeModals()">✕</button>
+      </div>
+      <div class="cyber-modal-body">
+        <div id="incidentModalContent"></div>
+      </div>
+      <div class="cyber-modal-footer">
+        <button class="btn-secondary" onclick="window.CyberApp.closeModals()">Dismiss</button>
+        <button id="incidentTriageBtn" class="btn-secondary" style="color: #0284c7;">Mark Triaged</button>
+        <button id="incidentIsolateBtn" class="btn-primary">🛡️ Contain & Isolate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CUSTOM SAST RULE CREATOR -->
+  <div id="customRuleModal" class="cyber-modal-backdrop">
+    <div class="cyber-modal-card">
+      <div class="cyber-modal-header">
+        <span class="cyber-modal-title">➕ Add Custom SAST Vulnerability Rule</span>
+        <button class="cyber-modal-close" onclick="window.CyberApp.closeModals()">✕</button>
+      </div>
+      <div class="cyber-modal-body">
+        <div class="cyber-form-group">
+          <label class="cyber-form-label">Rule Identifier</label>
+          <input id="ruleFormId" type="text" class="cyber-form-input" placeholder="e.g. CUST-001">
+        </div>
+        <div class="cyber-form-group">
+          <label class="cyber-form-label">Rule Title / Name</label>
+          <input id="ruleFormName" type="text" class="cyber-form-input" placeholder="e.g. Insecure Internal API Token">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="cyber-form-group">
+            <label class="cyber-form-label">Severity</label>
+            <select id="ruleFormSeverity" class="cyber-form-select">
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="HIGH" selected>HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
+            </select>
+          </div>
+          <div class="cyber-form-group">
+            <label class="cyber-form-label">CWE Mapping</label>
+            <input id="ruleFormCWE" type="text" class="cyber-form-input" placeholder="e.g. CWE-798">
+          </div>
+        </div>
+        <div class="cyber-form-group">
+          <label class="cyber-form-label">Regex Pattern</label>
+          <input id="ruleFormRegex" type="text" class="cyber-form-input" placeholder="e.g. (?i)(internal_token|corp_secret)\s*=\s*['&quot;][a-z0-9]{16,}">
+        </div>
+        <div class="cyber-form-group">
+          <label class="cyber-form-label">Remediation Guidance</label>
+          <input id="ruleFormRemedy" type="text" class="cyber-form-input" placeholder="e.g. Inject token from environment secret.">
+        </div>
+      </div>
+      <div class="cyber-modal-footer">
+        <button class="btn-secondary" onclick="window.CyberApp.closeModals()">Cancel</button>
+        <button class="btn-primary" onclick="window.CyberApp.submitCustomRule()">Register Rule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification -->
+  <div id="globalToast" class="toast-notification">🌿 CyberSpring Notification</div>
+
+  <!-- Scripts -->
+  <script src="js/radar.js"></script>
+  <script src="js/terminal.js"></script>
+  <script src="js/sast.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

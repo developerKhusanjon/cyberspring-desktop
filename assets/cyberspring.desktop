@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=CyberSpring
+GenericName=SOC Controlling Center & SAST Scanner
+Comment=Automated Detection Engineering, Vulnerability Scanner & SOAR Hub
+Exec=cyberspring -gui
+Icon=cyberspring
+Terminal=false
+Categories=Development;Security;Network;System;
+Keywords=security;soc;sast;vulnerability;scanner;detection;soar;
+StartupNotify=true

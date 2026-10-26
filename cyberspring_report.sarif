@@ -1,0 +1,239 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "CyberSpring SAST",
+          "version": "1.0.0",
+          "informationUri": "https://cyberspring.secops.local",
+          "rules": [
+            {
+              "id": "SEC-001",
+              "name": "Hardcoded AWS Access Key",
+              "shortDescription": {
+                "text": "Hardcoded AWS Access Key ID exposed in source code. Can lead to unauthorized cloud infrastructure takeover."
+              }
+            },
+            {
+              "id": "INJ-002",
+              "name": "Command Injection / Shell Execution",
+              "shortDescription": {
+                "text": "Command passed to system shell execution (`sh -c`, `os.system`, `subprocess(..., shell=True)`). Unsanitized input can execute arbitrary commands."
+              }
+            },
+            {
+              "id": "COR-001",
+              "name": "Overly Permissive CORS Policy",
+              "shortDescription": {
+                "text": "Access-Control-Allow-Origin header set to wildcard `*` with credentials or sensitive endpoints."
+              }
+            },
+            {
+              "id": "PTH-001",
+              "name": "Path Traversal Weakness",
+              "shortDescription": {
+                "text": "File opened directly with filepath concatenation without validating if the resolved path stays within the base directory."
+              }
+            },
+            {
+              "id": "INJ-001",
+              "name": "SQL Injection via String Concatenation",
+              "shortDescription": {
+                "text": "Dynamic SQL query formed with string concatenation or string formatting without parameterized queries."
+              }
+            },
+            {
+              "id": "CRY-001",
+              "name": "Broken or Weak Cryptographic Hash (MD5 / SHA-1)",
+              "shortDescription": {
+                "text": "Usage of MD5 or SHA-1 for cryptographic security or password hashing. Both algorithms suffer from collision attacks."
+              }
+            },
+            {
+              "id": "NET-001",
+              "name": "TLS Certificate Verification Disabled",
+              "shortDescription": {
+                "text": "`InsecureSkipVerify: true` or `verify=False` disables SSL/TLS certificate validation, enabling Man-in-the-Middle (MITM) attacks."
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "SEC-001",
+          "level": "error",
+          "message": {
+            "text": "[CWE-798] Hardcoded AWS Access Key: Store AWS credentials in environment variables or use IAM roles / AWS Secrets Manager."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/cloud_storage.py"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "INJ-002",
+          "level": "error",
+          "message": {
+            "text": "[CWE-78] Command Injection / Shell Execution: Execute specific binaries directly with explicit arguments without spawning a shell interpreter."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/cloud_storage.py"
+                },
+                "region": {
+                  "startLine": 11
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "INJ-002",
+          "level": "error",
+          "message": {
+            "text": "[CWE-78] Command Injection / Shell Execution: Execute specific binaries directly with explicit arguments without spawning a shell interpreter."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/cloud_storage.py"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "COR-001",
+          "level": "warning",
+          "message": {
+            "text": "[CWE-942] Overly Permissive CORS Policy: Explicitly specify allowed trusted origins rather than wildcard."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/file_handler.js"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PTH-001",
+          "level": "error",
+          "message": {
+            "text": "[CWE-22] Path Traversal Weakness: Sanitize path using `filepath.Clean` and ensure `strings.HasPrefix(targetPath, baseDir)` before opening."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/file_handler.js"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "INJ-001",
+          "level": "error",
+          "message": {
+            "text": "[CWE-89] SQL Injection via String Concatenation: Use parameterized queries (e.g. `db.Query(\"SELECT ... WHERE id = ?\", id)`)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/auth_service.go"
+                },
+                "region": {
+                  "startLine": 20
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CRY-001",
+          "level": "warning",
+          "message": {
+            "text": "[CWE-328] Broken or Weak Cryptographic Hash (MD5 / SHA-1): Upgrade to SHA-256 (`crypto/sha256`), Argon2id, or bcrypt for passwords."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/auth_service.go"
+                },
+                "region": {
+                  "startLine": 29
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "INJ-002",
+          "level": "error",
+          "message": {
+            "text": "[CWE-78] Command Injection / Shell Execution: Execute specific binaries directly with explicit arguments without spawning a shell interpreter."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/auth_service.go"
+                },
+                "region": {
+                  "startLine": 38
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "NET-001",
+          "level": "error",
+          "message": {
+            "text": "[CWE-295] TLS Certificate Verification Disabled: Never disable TLS verification in production. Install and trust required Root CAs instead."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "test_samples/vulnerable_app/auth_service.go"
+                },
+                "region": {
+                  "startLine": 46
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
