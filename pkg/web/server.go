@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"cyberspring/pkg/detection"
+	riskapi "cyberspring/pkg/riskguard/api"
+	"cyberspring/pkg/riskguard/db"
 	"cyberspring/pkg/sast"
 	"cyberspring/pkg/soar"
 )
@@ -92,6 +94,17 @@ func (s *Server) Start() error {
 
 	// 7. Server Lifecycle APIs
 	mux.HandleFunc("/api/shutdown", s.handleShutdown)
+
+	// 8. RiskGuard Desktop Enterprise Risk & Endpoint Security APIs
+	database, dbPath, err := db.InitDB("")
+	if err != nil {
+		fmt.Printf("⚠️ RiskGuard SQLite Init warning: %v\n", err)
+	} else {
+		_ = db.SeedInitialData(database, true)
+		riskHandler := riskapi.NewAPIHandler(database)
+		riskHandler.RegisterRoutes(mux)
+		fmt.Printf("🛡️ RiskGuard Desktop Database initialized at: %s\n", dbPath)
+	}
 
 	// Static assets
 	sub, err := fs.Sub(staticFS, "static")

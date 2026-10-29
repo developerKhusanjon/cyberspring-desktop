@@ -3,720 +3,699 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CyberSpring — SOC Controlling Center, SAST Scanner & Interactive Terminal</title>
-  <link rel="stylesheet" href="css/glass.css">
-  <link rel="stylesheet" href="css/terminal.css">
-  <style>
-    /* SAST & Utility Inlines */
-    .sast-layout {
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 20px;
-      margin-top: 20px;
-    }
-    .sast-metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-    .sast-metric-box {
-      background: var(--glass-card-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      text-align: center;
-      box-shadow: var(--glass-shadow);
-    }
-    .sast-metric-num {
-      font-size: 28px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-    .sast-metric-num.crit { color: #e11d48; }
-    .sast-metric-num.high { color: #f97316; }
-    .sast-metric-num.med  { color: #eab308; }
-    .sast-metric-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-    .finding-item-row {
-      background: rgba(255, 255, 255, 0.7);
-      border: 1px solid var(--glass-border-subtle);
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .finding-item-row:hover, .finding-item-row.active {
-      background: #ffffff;
-      border-color: #0284c7;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
-      transform: translateX(3px);
-    }
-    .finding-row-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-    .finding-sev-badge {
-      display: inline-block;
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .finding-sev-badge.critical { background: #fee2e2; color: #b91c1c; }
-    .finding-sev-badge.high     { background: #ffedd5; color: #c2410c; }
-    .finding-sev-badge.medium   { background: #fef9c3; color: #854d0e; }
-    .finding-sev-badge.low      { background: #f1f5f9; color: #475569; }
-    .finding-rule-id {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    .finding-row-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #0f172a;
-      margin-bottom: 3px;
-    }
-    .finding-row-loc {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: #64748b;
-    }
-    .detail-header-card {
-      background: var(--glass-card-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-md);
-      padding: 22px;
-      box-shadow: var(--glass-shadow);
-      margin-bottom: 16px;
-    }
-    .detail-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #0f172a;
-      margin-top: 4px;
-    }
-    .detail-tag {
-      background: #e2e8f0;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #334155;
-    }
-    .detail-meta-loc {
-      margin: 12px 0 8px 0;
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-    .detail-desc {
-      font-size: 13px;
-      color: #334155;
-      line-height: 1.5;
-    }
-    .code-snippet-box, .remedy-box {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: var(--radius-md);
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: var(--glass-shadow);
-    }
-    .snippet-header, .remedy-header {
-      font-size: 12px;
-      font-weight: 700;
-      color: #475569;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 10px;
-    }
-    .snippet-pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 14px;
-      border-radius: 8px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      line-height: 1.5;
-      overflow-x: auto;
-    }
-    .diff-pre {
-      background: #f8fafc;
-      color: #0f172a;
-      border: 1px solid #e2e8f0;
-      padding: 14px;
-      border-radius: 8px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      line-height: 1.5;
-      overflow-x: auto;
-    }
-    .remedy-diff-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: #059669;
-      margin-bottom: 6px;
-    }
-    .sast-filter-pills-row {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    .sast-filter-pill {
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 14px;
-      cursor: pointer;
-    }
-    .sast-filter-pill.active {
-      background: #0f172a;
-      color: #ffffff;
-      border-color: #0f172a;
-    }
-    .incident-feed-row {
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
-    .incident-feed-row:hover {
-      background: rgba(2, 132, 199, 0.05);
-      border-radius: 6px;
-    }
-    .incident-feed-row:last-child {
-      border-bottom: none;
-    }
-  </style>
+  <title>Cyberspring — Cyber Security Audit & Governance Intelligence Console</title>
+  <link rel="stylesheet" href="css/cyberspring-dashboard.css">
 </head>
 <body>
 
-  <div class="app-container">
+  <div class="cs-app-wrapper">
 
-    <!-- Top Navigation Header -->
-    <header class="top-navbar">
-      <div class="brand-section">
-        <div class="brand-icon">🌿</div>
-        <div>
-          <div class="brand-title">CyberSpring</div>
-          <div class="brand-subtitle">Detection Engineering & SOAR Controlling Center</div>
+    <!-- Top Navigation & Brand Header -->
+    <header class="cs-header-bar">
+      <div class="cs-brand-group" onclick="CyberDashboard.switchView('console')">
+        <img src="/img/logo.jpg" alt="Cyberspring Lightning Logo" class="cs-brand-logo" />
+        <div class="cs-brand-title">
+          <span>Cyber</span>spring
+          <span style="font-weight: 500; font-size: 14px; color: var(--cs-text-muted); margin-left: 8px;">Audit & Risk Console</span>
         </div>
       </div>
 
-      <!-- Navigation Pills -->
-      <nav class="nav-pills">
-        <button class="nav-pill active" data-view="view-overview">Overview</button>
-        <button class="nav-pill" data-view="view-terminal">Terminal Studio <span class="pill-badge">CLI & Agent</span></button>
-        <button class="nav-pill" data-view="view-sast">SAST Scanner <span id="sastNavBadge" class="pill-badge">10 Vulns</span></button>
-        <button class="nav-pill" data-view="view-alerts">Key Alerts</button>
-        <button class="nav-pill" data-view="view-executions">Executions</button>
-      </nav>
-
-      <!-- User & Platform Controls -->
-      <div class="nav-actions">
-        <div style="font-size: 11px; font-weight: 600; color: #334155; background: rgba(255,255,255,0.7); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--glass-border);">
-          Cross-Platform · Darwin / Windows / Linux
+      <div class="cs-header-actions">
+        <div class="cs-badge-status">
+          <span class="cs-pulse-dot"></span>
+          <span id="cs-live-clock">Live SOC Guard</span>
         </div>
-        <button class="btn-secondary" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.35); font-size: 11px; padding: 4px 10px; font-weight: 700;" title="Down / Stop Server" onclick="window.CyberApp.shutdownServer()">
-          🛑 Down Server
+        <button class="cs-btn cs-btn-primary" onclick="CyberDashboard.openAddRiskModal()">
+          <span>➕</span>
+          <span>New Risk</span>
         </button>
-        <button class="icon-btn" title="System Notifications" onclick="window.CyberApp.showToast('All 7 telemetry streams operational.')">
-          🔔
-          <span class="badge-dot"></span>
+        <button class="cs-btn" onclick="CyberDashboard.runLocalAudit()">
+          <span>🔄</span>
+          <span>Run Audit</span>
         </button>
-        <div class="user-avatar-btn">
-          <div class="avatar-img">SOC</div>
-          <span class="user-name">Engineer</span>
-        </div>
+        <button class="cs-btn cs-btn-danger" title="Stop Local Server" onclick="CyberDashboard.shutdownServer()">
+          <span>🛑</span>
+          <span>Down</span>
+        </button>
       </div>
     </header>
 
-    <!-- Welcome Greeting Banner -->
-    <section class="greeting-banner">
-      <div>
-        <h1 class="greeting-title">Welcome to CyberSpring SOC Controlling Center</h1>
-        <p class="greeting-subtitle">Full-spectrum detection engineering automation, source code vulnerability scanning & incident orchestration.</p>
-      </div>
-      <div class="banner-stats">
-        <div class="pulse-indicator">
-          <span class="pulse-dot"></span>
-          Live Ingestion · 7 Active Cloud & Perimeter Feeds
-        </div>
-      </div>
-    </section>
+    <!-- MAIN VIEW 1: 3D CYBER SECURITY AUDIT & GOVERNANCE CONSOLE (Exact Match to Reference Image) -->
+    <div class="cs-subview active" id="cs-view-console">
+      
+      <!-- 3D Console Arena: Left Wing, Center Console, Right Wing, and Connecting Laser Circuits -->
+      <div class="cs-console-arena">
 
-    <!-- VIEW 1: OVERVIEW DASHBOARD -->
-    <main id="view-overview" class="view-section active-view">
-      <div class="dashboard-grid">
+        <!-- Glowing Circuit Laser Canvas -->
+        <svg class="cs-circuit-canvas" viewBox="0 0 1520 520" preserveAspectRatio="none">
+          <defs>
+            <filter id="laser-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+          <!-- Left Wing Circuits to Center Console -->
+          <path d="M 210 50 C 240 50, 260 140, 280 180" class="cs-glow-path" filter="url(#laser-glow)" />
+          <path d="M 210 135 C 245 135, 260 210, 280 230" class="cs-glow-path" filter="url(#laser-glow)" />
+          <path d="M 210 220 C 245 220, 260 250, 280 260" class="cs-glow-path" filter="url(#laser-glow)" />
+          <path d="M 210 305 C 245 305, 260 280, 280 280" class="cs-glow-path" filter="url(#laser-glow)" />
 
-        <!-- Central Threat Radar Card (Hero Section) -->
-        <div class="hero-radar-card">
-          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div style="font-weight: 700; font-size: 15px; color: #1e293b;">Perimeter Defense & Threat Interception Radar</div>
-            <div style="font-size: 12px; color: var(--text-muted);">Click any node to inspect telemetry</div>
+          <!-- Right Center Console Circuits to Right Wing -->
+          <path d="M 1240 180 C 1260 140, 1280 50, 1310 50" class="cs-glow-path" filter="url(#laser-glow)" />
+          <path d="M 1240 215 C 1265 190, 1285 120, 1310 125" class="cs-glow-path" filter="url(#laser-glow)" />
+          <path d="M 1240 245 C 1265 240, 1285 200, 1310 200" class="cs-glow-path" filter="url(#laser-glow)" />
+          <path d="M 1240 270 C 1265 265, 1285 275, 1310 275" class="cs-glow-path" filter="url(#laser-glow)" />
+          <path d="M 1240 300 C 1265 315, 1285 350, 1310 350" class="cs-glow-path" filter="url(#laser-glow)" />
+        </svg>
+
+        <!-- Left Wing: Governance & Audit Streams -->
+        <div class="cs-wing-column cs-left-wing">
+          <!-- Card 1: Audit Universe -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.filterByStream('universe')" title="Monitored Assets & Host Inventory">
+            <div class="cs-card-icon-3d">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a10 10 0 0 1 10 10h-10z" fill="rgba(0, 229, 255, 0.4)" />
+              </svg>
+            </div>
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Audit Universe</div>
+              <div class="cs-wing-card-sub"></div>
+            </div>
+            <div class="cs-node-dot"></div>
           </div>
 
-          <div id="radarContainer" class="radar-canvas-container">
-            <canvas id="radarCanvas"></canvas>
+          <!-- Card 2: Risk Assessment -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.filterByStream('risks')" title="Enterprise Risk Register">
+            <div class="cs-card-icon-3d" style="background: linear-gradient(135deg, #1e3a8a, #0284c7);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Risk Assessment</div>
+              <div class="cs-wing-card-sub"></div>
+            </div>
+            <div class="cs-node-dot"></div>
+          </div>
+
+          <!-- Card 3: Audit Plan -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.filterByStream('plan')" title="Active Remediation Schedules">
+            <div class="cs-card-icon-3d" style="background: linear-gradient(135deg, #1e3a8a, #0284c7);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </div>
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Audit Plan</div>
+              <div class="cs-wing-card-sub"></div>
+            </div>
+            <div class="cs-node-dot"></div>
+          </div>
+
+          <!-- Card 4: Regulatory Requirements -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.filterByStream('compliance')" title="CIS & ISO Framework Controls">
+            <div class="cs-card-icon-3d" style="background: linear-gradient(135deg, #1e3a8a, #0284c7);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Regulatory Requirements</div>
+              <div class="cs-wing-card-sub"></div>
+            </div>
+            <div class="cs-node-dot"></div>
+          </div>
+        </div>
+
+        <!-- Center Hub: The Floating Cyber Tablet Command Console -->
+        <div class="cs-center-console-hub">
+          
+          <!-- Left Icon Sidebar -->
+          <div class="cs-console-sidebar">
+            <button class="cs-sidebar-btn active" title="Console Overview" onclick="CyberDashboard.switchView('console')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </button>
+            <button class="cs-sidebar-btn" title="Enterprise Risk Register" onclick="CyberDashboard.switchView('risks')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10h-10z"/></svg>
+            </button>
+            <button class="cs-sidebar-btn" title="Endpoint Security Posture" onclick="CyberDashboard.switchView('endpoints')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            </button>
+            <button class="cs-sidebar-btn" title="Vulnerability Prioritization" onclick="CyberDashboard.switchView('vulns')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            </button>
+            <button class="cs-sidebar-btn" title="Audit Reports & SQLite Backup" onclick="CyberDashboard.switchView('reports')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </button>
+            <button class="cs-sidebar-btn" title="Settings" onclick="CyberDashboard.showSupport()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+          </div>
+
+          <!-- Main Console Body -->
+          <div class="cs-console-main">
             
-            <!-- Central Badge (68% Threats Blocked) -->
-            <div class="radar-center-badge">
-              <div id="threatsBlockedVal" class="threats-blocked-val">68%</div>
-              <div class="threats-blocked-label">Threats Blocked</div>
+            <!-- TOP ROW: Audit Overview & Audit Plan Progress -->
+            <div class="cs-hub-top-grid">
+              
+              <!-- Panel 1: Audit Overview -->
+              <div class="cs-inner-panel">
+                <div class="cs-panel-title">Audit Overview</div>
+                <div class="cs-overview-split">
+                  <!-- Circular Donut Ring -->
+                  <div class="cs-donut-plan-wrapper">
+                    <svg class="cs-donut-plan-svg" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#101d3b" stroke-width="12" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#00e5ff" stroke-width="12" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="80" style="filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.6));" />
+                    </svg>
+                    <div class="cs-donut-center-pct">
+                      <div class="cs-pct-val" id="cs-donut-pct">68%</div>
+                      <div class="cs-pct-sub">Plan Completed</div>
+                    </div>
+                  </div>
+
+                  <!-- 4 Metric Columns -->
+                  <div class="cs-metric-cols-4">
+                    <div class="cs-metric-col-item">
+                      <div class="cs-metric-num" id="cs-audits-completed">24</div>
+                      <div class="cs-metric-lbl">Audits Completed</div>
+                    </div>
+                    <div class="cs-metric-col-item">
+                      <div class="cs-metric-num" id="cs-audits-progress">11</div>
+                      <div class="cs-metric-lbl">Audits In Progress</div>
+                    </div>
+                    <div class="cs-metric-col-item">
+                      <div class="cs-metric-num" id="cs-audits-upcoming">05</div>
+                      <div class="cs-metric-lbl">Audits Upcoming</div>
+                    </div>
+                    <div class="cs-metric-col-item">
+                      <div class="cs-metric-num cs-overdue-red" id="cs-audits-overdue">07</div>
+                      <div class="cs-metric-lbl" style="color: #f87171;">Overdue Audits</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 2: Audit Plan Progress -->
+              <div class="cs-inner-panel">
+                <div class="cs-plan-bar-header">
+                  <span class="cs-panel-title">Audit Plan Progress</span>
+                  <span>68%</span>
+                </div>
+                <div class="cs-top-progress-track">
+                  <div class="cs-top-progress-fill"></div>
+                </div>
+
+                <!-- Monthly Vertical Bar Progression (Jan - Jun) -->
+                <div class="cs-month-bars-box">
+                  <div class="cs-month-col">
+                    <div class="cs-month-bar" style="height: 18px;"></div>
+                    <span class="cs-month-label">Jan</span>
+                  </div>
+                  <div class="cs-month-col">
+                    <div class="cs-month-bar" style="height: 28px;"></div>
+                    <span class="cs-month-label">Feb</span>
+                  </div>
+                  <div class="cs-month-col">
+                    <div class="cs-month-bar" style="height: 38px;"></div>
+                    <span class="cs-month-label">Mar</span>
+                  </div>
+                  <div class="cs-month-col">
+                    <div class="cs-month-bar" style="height: 48px;"></div>
+                    <span class="cs-month-label">Apr</span>
+                  </div>
+                  <div class="cs-month-col">
+                    <div class="cs-month-bar" style="height: 60px; background: linear-gradient(to top, #0284c7, #00e5ff); box-shadow: 0 0 10px #00e5ff;"></div>
+                    <span class="cs-month-label">May</span>
+                  </div>
+                  <div class="cs-month-col">
+                    <div class="cs-month-bar" style="height: 42px;"></div>
+                    <span class="cs-month-label">Jun</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
+
+            <!-- BOTTOM ROW: Audit Status, Findings Summary, Top Audit Areas -->
+            <div class="cs-hub-bottom-grid">
+              
+              <!-- Card A: Audit Status -->
+              <div class="cs-inner-panel">
+                <div class="cs-panel-title">Audit Status</div>
+                <div class="cs-status-flex">
+                  <svg class="cs-mini-donut" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="24" fill="none" stroke="#101d3b" stroke-width="8" />
+                    <!-- Completed (Cyan) -->
+                    <circle cx="32" cy="32" r="24" fill="none" stroke="#00e5ff" stroke-width="8" stroke-dasharray="150" stroke-dashoffset="48" style="transform: rotate(-90deg); transform-origin: 32px 32px;" />
+                    <!-- In Progress (Blue) -->
+                    <circle cx="32" cy="32" r="24" fill="none" stroke="#0ea5e9" stroke-width="8" stroke-dasharray="150" stroke-dashoffset="120" style="transform: rotate(155deg); transform-origin: 32px 32px;" />
+                    <!-- Overdue (Red) -->
+                    <circle cx="32" cy="32" r="24" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="150" stroke-dashoffset="142" style="transform: rotate(230deg); transform-origin: 32px 32px;" />
+                  </svg>
+                  <div class="cs-legend-list">
+                    <div class="cs-legend-row">
+                      <span><span class="cs-legend-dot" style="background: #00e5ff;"></span>Completed</span>
+                      <b style="color: #fff;">24 (68%)</b>
+                    </div>
+                    <div class="cs-legend-row">
+                      <span><span class="cs-legend-dot" style="background: #0ea5e9;"></span>In Progress</span>
+                      <b style="color: #fff;">11 (20%)</b>
+                    </div>
+                    <div class="cs-legend-row">
+                      <span><span class="cs-legend-dot" style="background: #8b5cf6;"></span>Upcoming</span>
+                      <b style="color: #fff;">5 (7%)</b>
+                    </div>
+                    <div class="cs-legend-row">
+                      <span><span class="cs-legend-dot" style="background: #ef4444;"></span>Overdue</span>
+                      <b style="color: #f87171;">7 (5%)</b>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card B: Findings Summary -->
+              <div class="cs-inner-panel">
+                <div class="cs-panel-title">Findings Summary</div>
+                <div class="cs-status-flex">
+                  <div class="cs-findings-donut-box">
+                    <svg viewBox="0 0 64 64" width="100%" height="100%">
+                      <circle cx="32" cy="32" r="24" fill="none" stroke="#101d3b" stroke-width="8" />
+                      <circle cx="32" cy="32" r="24" fill="none" stroke="#ef4444" stroke-width="8" stroke-dasharray="150" stroke-dashoffset="108" style="transform: rotate(-90deg); transform-origin: 32px 32px;" />
+                      <circle cx="32" cy="32" r="24" fill="none" stroke="#f97316" stroke-width="8" stroke-dasharray="150" stroke-dashoffset="82" style="transform: rotate(10deg); transform-origin: 32px 32px;" />
+                      <circle cx="32" cy="32" r="24" fill="none" stroke="#00e5ff" stroke-width="8" stroke-dasharray="150" stroke-dashoffset="138" style="transform: rotate(175deg); transform-origin: 32px 32px;" />
+                    </svg>
+                    <div class="cs-findings-center-text">
+                      <div class="cs-findings-count" id="cs-total-findings">128</div>
+                      <div class="cs-findings-sub">Total Findings</div>
+                    </div>
+                  </div>
+                  <div class="cs-legend-list">
+                    <div class="cs-legend-row">
+                      <span><span class="cs-legend-dot" style="background: #ef4444;"></span>High</span>
+                      <b style="color: #fff;">36 (28%)</b>
+                    </div>
+                    <div class="cs-legend-row">
+                      <span><span class="cs-legend-dot" style="background: #f97316;"></span>Medium</span>
+                      <b style="color: #fff;">58 (45%)</b>
+                    </div>
+                    <div class="cs-legend-row">
+                      <span><span class="cs-legend-dot" style="background: #0ea5e9;"></span>Low</span>
+                      <b style="color: #fff;">24 (19%)</b>
+                    </div>
+                    <div class="cs-legend-row">
+                      <span><span class="cs-legend-dot" style="background: #00e5ff;"></span>Info</span>
+                      <b style="color: #fff;">10 (8%)</b>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card C: Top Audit Areas -->
+              <div class="cs-inner-panel">
+                <div class="cs-panel-title">Top Audit Areas</div>
+                <div class="cs-areas-list">
+                  <div class="cs-area-item">
+                    <div class="cs-area-meta"><span>Operations</span><b>80%</b></div>
+                    <div class="cs-area-track"><div class="cs-area-fill" style="width: 80%; background: #00e5ff; box-shadow: 0 0 6px #00e5ff;"></div></div>
+                  </div>
+                  <div class="cs-area-item">
+                    <div class="cs-area-meta"><span>IT Systems</span><b>65%</b></div>
+                    <div class="cs-area-track"><div class="cs-area-fill" style="width: 65%; background: #0284c7;"></div></div>
+                  </div>
+                  <div class="cs-area-item">
+                    <div class="cs-area-meta"><span>Compliance</span><b>55%</b></div>
+                    <div class="cs-area-track"><div class="cs-area-fill" style="width: 55%; background: #0284c7;"></div></div>
+                  </div>
+                  <div class="cs-area-item">
+                    <div class="cs-area-meta"><span>Finance</span><b>45%</b></div>
+                    <div class="cs-area-track"><div class="cs-area-fill" style="width: 45%; background: #1e40af;"></div></div>
+                  </div>
+                  <div class="cs-area-item">
+                    <div class="cs-area-meta"><span>Vendor Mgmt</span><b>30%</b></div>
+                    <div class="cs-area-track"><div class="cs-area-fill" style="width: 30%; background: #1e3a8a;"></div></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
 
-        <!-- Right Side Widgets Column -->
-        <div class="side-widgets-column">
-
-          <!-- Open Incidents Widget -->
-          <div class="glass-widget">
-            <div class="widget-header">
-              <span class="widget-title">Open Incidents</span>
-              <button class="widget-expand-btn" title="View All Alerts" onclick="document.querySelector('[data-view=view-alerts]').click()">↗</button>
+        <!-- Right Wing: Assurance, Tracking & Outcomes -->
+        <div class="cs-wing-column cs-right-wing">
+          <!-- Card 1: Audit Effectiveness -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.triggerRightAction('effectiveness')" title="Run Security Posture Health Check">
+            <div class="cs-node-dot"></div>
+            <div class="cs-card-icon-3d">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
+              </svg>
             </div>
-            <div class="incident-metric-row">
-              <div id="openIncidentsCount" class="incident-big-number">7</div>
-              <div>
-                <div id="incidentTrendPercent" class="incident-trend">↑ +35%</div>
-                <div class="incident-trend-sub">vs. previous 24h</div>
-              </div>
-            </div>
-            <div class="severity-chips-grid">
-              <div class="severity-chip" style="cursor: pointer;" onclick="window.CyberApp.filterIncidentsBySev('High')">
-                <div class="chip-label"><span class="chip-dot crit"></span> High</div>
-                <div id="chipCritCount" class="chip-count">2</div>
-              </div>
-              <div class="severity-chip" style="cursor: pointer;" onclick="window.CyberApp.filterIncidentsBySev('Medium')">
-                <div class="chip-label"><span class="chip-dot med"></span> Medium</div>
-                <div id="chipMedCount" class="chip-count">2</div>
-              </div>
-              <div class="severity-chip" style="cursor: pointer;" onclick="window.CyberApp.filterIncidentsBySev('Low')">
-                <div class="chip-label"><span class="chip-dot low"></span> Low</div>
-                <div id="chipLowCount" class="chip-count">2</div>
-              </div>
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Audit Effectiveness</div>
+              <div class="cs-wing-card-sub"></div>
             </div>
           </div>
 
-          <!-- Automation / Playbooks Widget -->
-          <div class="glass-widget dark-playbook-widget">
-            <div class="widget-header">
-              <span class="widget-title">SOAR Automation / Playbooks</span>
-              <button class="widget-expand-btn" style="color: #94a3b8;" onclick="document.querySelector('[data-view=view-executions]').click()">↗</button>
+          <!-- Card 2: Risk Mitigation -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.triggerRightAction('mitigation')" title="Enterprise Risk Treatments & Controls">
+            <div class="cs-node-dot"></div>
+            <div class="cs-card-icon-3d" style="background: linear-gradient(135deg, #1e3a8a, #0284c7);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
             </div>
-            <div id="playbooksListContainer" class="playbook-list">
-              <!-- Dynamically populated -->
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Risk Mitigation</div>
+              <div class="cs-wing-card-sub"></div>
             </div>
           </div>
 
+          <!-- Card 3: Compliance Assurance -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.triggerRightAction('assurance')" title="CIS & ISO Compliance Coverage">
+            <div class="cs-node-dot"></div>
+            <div class="cs-card-icon-3d" style="background: linear-gradient(135deg, #1e3a8a, #0284c7);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <polyline points="9 15 11 17 15 13" />
+              </svg>
+            </div>
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Compliance Assurance</div>
+              <div class="cs-wing-card-sub"></div>
+            </div>
+          </div>
+
+          <!-- Card 4: Action Tracking -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.triggerRightAction('tasks')" title="Remediation Tasks & Deadlines">
+            <div class="cs-node-dot"></div>
+            <div class="cs-card-icon-3d" style="background: linear-gradient(135deg, #1e3a8a, #0284c7);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </div>
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Action Tracking</div>
+              <div class="cs-wing-card-sub"></div>
+            </div>
+          </div>
+
+          <!-- Card 5: Management Reporting -->
+          <div class="cs-3d-wing-card" onclick="CyberDashboard.triggerRightAction('reporting')" title="Export Executive Audit Reports">
+            <div class="cs-node-dot"></div>
+            <div class="cs-card-icon-3d" style="background: linear-gradient(135deg, #1e3a8a, #0284c7);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+            </div>
+            <div class="cs-wing-card-text">
+              <div class="cs-wing-card-title">Management Reporting</div>
+              <div class="cs-wing-card-sub"></div>
+            </div>
+          </div>
         </div>
 
       </div>
 
-      <!-- Bottom Status Row (Assets & Alerts Velocity) -->
-      <div class="bottom-cards-row">
-        <!-- Assets Card -->
-        <div class="glass-widget">
-          <div class="widget-header">
-            <span class="widget-title">Fleet Assets</span>
-            <span style="font-size: 11px; color: #10b981;">100% Operational</span>
+      <!-- BOTTOM PIPELINE: End-to-End Governance Lifecycle Rail -->
+      <div class="cs-pipeline-rail-box">
+        <div class="cs-pipeline-track">
+          
+          <!-- Stage 1: Planning -->
+          <div class="cs-pipeline-step-card active" onclick="CyberDashboard.filterByStage('Planning')">
+            <div class="cs-step-icon">📋</div>
+            <div class="cs-step-title">Planning</div>
+            <div class="cs-step-check-pill">✓</div>
           </div>
-          <div class="asset-row">
-            <div class="asset-type">🖥️ Servers</div>
-            <span class="asset-badge">24 Healthy</span>
-          </div>
-          <div class="asset-row">
-            <div class="asset-type">💻 Workstations</div>
-            <span class="asset-badge">38 Healthy</span>
-          </div>
-        </div>
+          <div class="cs-step-arrow">➔</div>
 
-        <!-- Alerts Velocity Card -->
-        <div class="glass-widget">
-          <div class="widget-header">
-            <span class="widget-title">Alert Velocity (24h)</span>
-            <span style="font-size: 11px; color: var(--text-muted);">Real-time Telemetry</span>
+          <!-- Stage 2: Fieldwork -->
+          <div class="cs-pipeline-step-card active" onclick="CyberDashboard.filterByStage('Fieldwork')">
+            <div class="cs-step-icon">👥</div>
+            <div class="cs-step-title">Fieldwork</div>
+            <div class="cs-step-check-pill">✓</div>
           </div>
-          <div style="font-size: 12px; margin-bottom: 4px; display: flex; justify-content: space-between;">
-            <span>High Severity Signals</span>
-            <strong style="color: #ef4444;">↑ 20%</strong>
-          </div>
-          <div class="alert-meter-bar"><div class="alert-meter-fill fill-high"></div></div>
+          <div class="cs-step-arrow">➔</div>
 
-          <div style="font-size: 12px; margin-top: 10px; margin-bottom: 4px; display: flex; justify-content: space-between;">
-            <span>Medium Severity Signals</span>
-            <strong style="color: #f59e0b;">↑ 8%</strong>
+          <!-- Stage 3: Testing & Evaluation -->
+          <div class="cs-pipeline-step-card active" onclick="CyberDashboard.filterByStage('Testing')">
+            <div class="cs-step-icon">🔍</div>
+            <div class="cs-step-title">Testing & Evaluation</div>
+            <div class="cs-step-check-pill">✓</div>
           </div>
-          <div class="alert-meter-bar"><div class="alert-meter-fill fill-med"></div></div>
-        </div>
+          <div class="cs-step-arrow">➔</div>
 
-        <!-- Live Incident Triage Stream -->
-        <div class="glass-widget">
-          <div class="widget-header">
-            <span class="widget-title">Security Feed & Incident Stream</span>
-            <span style="font-size: 11px; color: #0284c7;">Click row to triage</span>
+          <!-- Stage 4: Findings -->
+          <div class="cs-pipeline-step-card active" onclick="CyberDashboard.filterByStage('Findings')">
+            <div class="cs-step-icon">🚩</div>
+            <div class="cs-step-title">Findings</div>
+            <div class="cs-step-check-pill">✓</div>
           </div>
-          <div id="incidentsFeedList" style="max-height: 110px; overflow-y: auto;">
-            <!-- Populated via JS -->
+          <div class="cs-step-arrow">➔</div>
+
+          <!-- Stage 5: Recommendations -->
+          <div class="cs-pipeline-step-card active" onclick="CyberDashboard.filterByStage('Recommendations')">
+            <div class="cs-step-icon">💡</div>
+            <div class="cs-step-title">Recommendations</div>
+            <div class="cs-step-check-pill">✓</div>
           </div>
+          <div class="cs-step-arrow">➔</div>
+
+          <!-- Stage 6: Action Plans -->
+          <div class="cs-pipeline-step-card active" onclick="CyberDashboard.filterByStage('Action Plans')">
+            <div class="cs-step-icon">📝</div>
+            <div class="cs-step-title">Action Plans</div>
+            <div class="cs-step-check-pill">✓</div>
+          </div>
+          <div class="cs-step-arrow">➔</div>
+
+          <!-- Stage 7: Follow-up & Closure -->
+          <div class="cs-pipeline-step-card active" onclick="CyberDashboard.filterByStage('Closure')">
+            <div class="cs-step-target-final">✓</div>
+            <div class="cs-step-title">Follow-up & Closure</div>
+          </div>
+
         </div>
       </div>
-    </main>
 
-    <!-- VIEW 2: DETECTION ENGINEERING TERMINAL & CLI STUDIO -->
-    <section id="view-terminal" class="view-section">
-      <div class="terminal-window">
-        <!-- macOS Window Header Bar -->
-        <div class="terminal-titlebar">
-          <div class="titlebar-left">
-            <div class="traffic-lights">
-              <span class="traffic-dot close"></span>
-              <span class="traffic-dot min"></span>
-              <span class="traffic-dot max"></span>
-            </div>
-            <div class="titlebar-text">cyberspring-terminal — ~/detections</div>
+    </div>
+
+    <!-- DETAILED SUBVIEW 2: ENTERPRISE RISK REGISTER -->
+    <div class="cs-subview" id="cs-view-risks">
+      <div class="cs-table-card">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-size: 16px; font-weight: 700; color: #fff;">
+            📋 Enterprise Risk Register & Treatment Engine
           </div>
-
-          <!-- Dual Mode Switcher Tabs -->
-          <div class="terminal-mode-tabs">
-            <button id="tabModeCLI" class="terminal-mode-tab active" onclick="window.CyberApp.terminal.switchTerminalMode('cli')">⚡ Interactive CLI Shell</button>
-            <button id="tabModeAgent" class="terminal-mode-tab" onclick="window.CyberApp.terminal.switchTerminalMode('agent')">🤖 Detection Agent Studio</button>
-          </div>
-
-          <div id="titlebarTimer" class="titlebar-timer">00:24</div>
-        </div>
-
-        <!-- MODE 1: INTERACTIVE CLI CONSOLE (Full Terminal View) -->
-        <div id="terminalCliContainer" class="cli-console-pane">
-          <!-- Quick Command Launcher Bar -->
-          <div class="cli-quick-bar">
-            <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">Quick Actions:</span>
-            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('scan test_samples/vulnerable_app')">⚡ scan test_samples/vulnerable_app</button>
-            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('test rules/vpn_password_spray.yml')">🧪 test rules</button>
-            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('agent &quot;Detect AWS root console login without MFA&quot;')">🤖 agent "AWS Root Login"</button>
-            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('report test_samples/vulnerable_app')">📄 generate reports</button>
-            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('status')">🛡️ status</button>
-            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('incidents')">🚨 incidents</button>
-            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('soar list')">⚡ soar list</button>
-            <button class="quick-cmd-btn" onclick="window.CyberApp.terminal.runCliPreset('help')">❓ help</button>
-            <button class="quick-cmd-btn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="window.CyberApp.terminal.runCliPreset('down')">🛑 down</button>
-          </div>
-
-          <!-- Scrollable Output Viewport -->
-          <div id="cliOutputViewport" class="cli-output-viewport">
-            <pre id="cliOutputPre"></pre>
-          </div>
-
-          <!-- Command Input Row -->
-          <div class="cli-input-container">
-            <span class="cli-prompt-label">cyberspring@soc-hub:~$</span>
-            <input id="cliCommandInput" type="text" class="cli-input-field" placeholder="Type a command (e.g. scan, test, agent, report, help)..." autocomplete="off" spellcheck="false">
-            <button id="cliRunBtn" class="cli-run-btn">Run ⏎</button>
-            <button id="cliClearBtn" class="cli-clear-btn" onclick="window.CyberApp.terminal.clearCliOutput()">Clear</button>
-          </div>
-        </div>
-
-        <!-- MODE 2: DETECTION ENGINEERING AGENT STUDIO (Split Panes) -->
-        <div id="terminalAgentContainer" class="terminal-body" style="display: none;">
-
-          <!-- Left Pane: Agent Session -->
-          <div class="agent-pane">
-            <div class="pane-label">NATURAL LANGUAGE DETECTION AGENT</div>
-            
-            <div class="prompt-line">
-              <span class="prompt-path">~/detections $</span> agent
-            </div>
-
-            <!-- Editable Custom Agent Prompt Box -->
-            <div class="agent-prompt-wrapper">
-              <textarea id="agentCustomPromptInput" class="agent-command-textarea" spellcheck="false">Write a detection for password spraying against our VPN: failed logons across 10 or more distinct accounts from one source IP inside 10 minutes. Generate test cases, backtest it against the last 30 days of VPN auth logs, and report the false positive rate.</textarea>
-              <div class="agent-preset-chips">
-                <span style="font-size: 10px; color: var(--text-muted); align-self: center;">Presets:</span>
-                <span class="agent-preset-chip" onclick="window.CyberApp.terminal.loadAgentPreset('vpn')">VPN Spray (NPS)</span>
-                <span class="agent-preset-chip" onclick="window.CyberApp.terminal.loadAgentPreset('aws')">AWS Root Login (CloudTrail)</span>
-                <span class="agent-preset-chip" onclick="window.CyberApp.terminal.loadAgentPreset('k8s')">K8s Privileged Pod</span>
-                <span class="agent-preset-chip" onclick="window.CyberApp.terminal.loadAgentPreset('ssh')">Linux SSH Brute Force</span>
-              </div>
-            </div>
-
-            <!-- Dynamic Agent Steps -->
-            <div id="agentStepsList" class="agent-steps-list">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- Right Pane: Rule YAML, Test Cases & Backtest -->
-          <div class="rules-pane">
-
-            <!-- Top: Rule YAML -->
-            <div class="rule-viewer-block">
-              <div class="file-header-tag">
-                <span>📄 rules/vpn_password_spray.yml</span>
-                <button class="btn-secondary" style="padding: 2px 8px; font-size: 10px;" onclick="window.CyberApp.terminal.saveRules()">💾 Save</button>
-              </div>
-              <textarea id="ruleEditor" class="editor-textarea" spellcheck="false"></textarea>
-            </div>
-
-            <!-- Middle: Test Cases YAML -->
-            <div class="rule-viewer-block">
-              <div class="file-header-tag">
-                <span>🧪 tests/vpn_password_spray_test.yml</span>
-              </div>
-              <textarea id="testEditor" class="editor-textarea" style="min-height: 100px;" spellcheck="false"></textarea>
-            </div>
-
-            <!-- Bottom: Historical Backtest -->
-            <div class="backtest-footer">
-              <div class="backtest-header-text">TESTS + HISTORICAL BACKTEST · 30 days telemetry stream</div>
-              <div id="stageBadgesRow" class="stage-badges-row">
-                <div>STAGE 1 · <span class="stage-tag">replay fixtures</span> attacks 4/4 fired · benign 2/2 quiet</div>
-                <div>STAGE 2 · <span class="stage-tag">historical backtest</span> - 412,806 events · 30 days</div>
-              </div>
-              <div class="backtest-progress-track">
-                <div id="backtestProgressBar" class="backtest-progress-bar" style="width: 100%;"></div>
-              </div>
-              <div id="backtestOutcomeRow" class="backtest-outcome-row">
-                <div class="outcome-fires">fires on 30 days of history: <strong>1</strong> - triaged: <strong>benign</strong></div>
-                <div class="outcome-budget-tag">false positives: 1 in 30 days — within budget</div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-        <!-- Terminal Bottom Action Bar (Agent Mode) -->
-        <div id="terminalAgentActionsBar" class="terminal-actions-bar" style="display: none;">
           <div style="display: flex; gap: 8px;">
-            <button id="runAgentBtn" class="btn-primary">⚡ Run Agent Session</button>
-            <button id="runReplayBtn" class="btn-secondary">▶ Run Replays</button>
-            <button id="runBacktestBtn" class="btn-secondary">📊 Backtest 30d History</button>
+            <button class="cs-btn cs-btn-primary" onclick="CyberDashboard.openAddRiskModal()">➕ New Risk</button>
+            <a href="/api/riskguard/reports/csv" class="cs-btn">📥 Export CSV</a>
+            <button class="cs-btn" onclick="CyberDashboard.switchView('console')">⬅️ Back to Console</button>
           </div>
-          <button id="saveRulesBtn" class="btn-secondary">💾 Save YAML Rules</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="cs-table">
+            <thead>
+              <tr>
+                <th>Risk Code</th>
+                <th>Title & Affected Asset</th>
+                <th>Category</th>
+                <th>Inherent Rating</th>
+                <th>Residual Score</th>
+                <th>Treatment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="cs-risks-tbody"></tbody>
+          </table>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- VIEW 3: SAST SOURCE CODE VULNERABILITY SCANNER -->
-    <section id="view-sast" class="view-section">
-      <!-- Top Target Selector & Controls -->
-      <div class="glass-widget" style="padding: 20px 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 320px;">
-            <span style="font-weight: 700; font-size: 13px;">Target Path:</span>
-            <input id="sastTargetPath" type="text" value="test_samples/vulnerable_app" 
-                   style="flex: 1; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: var(--font-mono); font-size: 13px;">
-          </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button id="sastScanBtn" class="btn-primary">⚡ Run Vulnerability Audit</button>
-            <button id="sastAddRuleBtn" class="btn-secondary" onclick="window.CyberApp.openCustomRuleModal()">➕ Custom Rule</button>
-            <button id="sastSarifBtn" class="btn-secondary">📥 SARIF 2.1.0</button>
-            <button id="sastHtmlReportBtn" class="btn-secondary">📄 HTML Report</button>
-            <button id="sastMdReportBtn" class="btn-secondary" onclick="window.open('/api/report/markdown')">📝 Markdown</button>
-            <button id="sastJsonReportBtn" class="btn-secondary" onclick="window.open('/api/report/json')">💾 JSON</button>
-          </div>
-        </div>
-
-        <!-- Quick Scope Preset Buttons -->
-        <div class="quick-preset-row">
-          <span style="font-size: 11px; font-weight: 600; color: #64748b;">Quick Targets:</span>
-          <button class="quick-preset-btn" onclick="window.CyberApp.sast.setTarget('test_samples/vulnerable_app')">📁 Sample App (test_samples/vulnerable_app)</button>
-          <button class="quick-preset-btn" onclick="window.CyberApp.sast.setTarget('.')">📦 Full Workspace (.)</button>
-          <button class="quick-preset-btn" onclick="window.CyberApp.sast.setTarget('pkg/')">⚙️ Go Core (pkg/)</button>
-          <button class="quick-preset-btn" onclick="window.CyberApp.sast.setTarget('rules/')">🛡️ Detection Rules (rules/)</button>
-        </div>
-      </div>
-
-      <!-- SAST Metrics -->
-      <div class="sast-metrics-grid" style="margin-top: 18px;">
-        <div class="sast-metric-box">
-          <div id="sastCritCount" class="sast-metric-num crit">4</div>
-          <div class="sast-metric-label">Critical Weaknesses</div>
-        </div>
-        <div class="sast-metric-box">
-          <div id="sastHighCount" class="sast-metric-num high">4</div>
-          <div class="sast-metric-label">High Severity</div>
-        </div>
-        <div class="sast-metric-box">
-          <div id="sastMedCount" class="sast-metric-num med">2</div>
-          <div class="sast-metric-label">Medium Severity</div>
-        </div>
-        <div class="sast-metric-box">
-          <div id="sastFilesCount" class="sast-metric-num">3</div>
-          <div class="sast-metric-label">Scanned Files</div>
-        </div>
-        <div class="sast-metric-box">
-          <div id="sastDuration" class="sast-metric-num" style="color: #0284c7;">1ms</div>
-          <div class="sast-metric-label">Scan Latency</div>
-        </div>
-      </div>
-
-      <!-- Main SAST Split Inspector -->
-      <div class="sast-layout">
-        <!-- Findings List -->
-        <div>
-          <!-- Search & Filter Controls -->
-          <div style="margin-bottom: 10px;">
-            <input id="sastSearchInput" type="text" placeholder="🔍 Search findings by rule, CWE, or file..." 
-                   style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 12px; margin-bottom: 8px;">
-          </div>
-          <div class="sast-filter-pills-row">
-            <button class="sast-filter-pill active" data-filter="ALL">All (<span id="filterAllCount">10</span>)</button>
-            <button class="sast-filter-pill" data-filter="CRITICAL">Critical</button>
-            <button class="sast-filter-pill" data-filter="HIGH">High</button>
-            <button class="sast-filter-pill" data-filter="MEDIUM">Medium</button>
-          </div>
-          <div id="sastFindingsList" style="max-height: 540px; overflow-y: auto;">
-            <!-- Populated via sast.js -->
-          </div>
-        </div>
-
-        <!-- Finding Detail & Remediation Inspector -->
-        <div id="sastDetailView">
-          <!-- Populated via sast.js -->
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 4: KEY ALERTS -->
-    <section id="view-alerts" class="view-section">
-      <div class="glass-widget">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+    <!-- DETAILED SUBVIEW 3: ENDPOINT SECURITY POSTURE -->
+    <div class="cs-subview" id="cs-view-endpoints">
+      <div class="cs-table-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
           <div>
-            <h2 style="font-size: 20px;">Key Alerts Stream & Perimeter Telemetry</h2>
-            <p style="color: var(--text-secondary); font-size: 13px;">Aggregated detection signals across cloud, identity, and perimeter switches.</p>
+            <h2 style="font-size: 16px; font-weight: 700; color: #fff;">💻 Endpoint Security Posture & Monitored Fleet</h2>
+            <p style="font-size: 11.5px; color: var(--cs-text-muted);">Stage A live host verification (Firewall, FileVault/BitLocker disk encryption, Antivirus/EDR, OS patch status).</p>
           </div>
-          <button class="btn-primary" onclick="window.CyberApp.triggerPlaybook('pb-ipblock')">⚡ Execute Automated Containment</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="cs-btn cs-btn-primary" onclick="CyberDashboard.runLocalAudit()">🔄 Run Live Machine Audit</button>
+            <button class="cs-btn" onclick="CyberDashboard.switchView('console')">⬅️ Back to Console</button>
+          </div>
         </div>
-        
-        <div id="alertsStreamContainer" style="display: flex; flex-direction: column; gap: 12px;">
-          <!-- Dynamically populated or enhanced -->
-        </div>
-      </div>
-    </section>
 
-    <!-- VIEW 5: EXECUTIONS & SOAR PLAYBOOKS -->
-    <section id="view-executions" class="view-section">
-      <div class="glass-widget">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <div id="cs-endpoints-cards"></div>
+      </div>
+    </div>
+
+    <!-- DETAILED SUBVIEW 4: VULNERABILITY REGISTER & ESCALATION -->
+    <div class="cs-subview" id="cs-view-vulns">
+      <div class="cs-table-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
           <div>
-            <h2 style="font-size: 20px;">SOAR Automation & Playbook Executions</h2>
-            <p style="color: var(--text-secondary); font-size: 13px;">Orchestrated incident response playbooks keeping your SOC running at machine speed.</p>
+            <h2 style="font-size: 16px; font-weight: 700; color: #fff;">🔍 Vulnerabilities & 1-Click Escalation</h2>
+            <p style="font-size: 11.5px; color: var(--cs-text-muted);">Escalate technical CVE findings into Business Risks, Compliance Controls (CIS/ISO), and Remediation Tasks.</p>
           </div>
-          <button class="btn-secondary" onclick="window.CyberApp.fetchPlaybooks()">🔄 Refresh Status</button>
+          <button class="cs-btn" onclick="CyberDashboard.switchView('console')">⬅️ Back to Console</button>
         </div>
-        
-        <div id="executionsPlaybookGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-          <!-- Populated via app.js -->
+
+        <div style="overflow-x: auto;">
+          <table class="cs-table">
+            <thead>
+              <tr>
+                <th>CVE ID</th>
+                <th>Title & Affected Software</th>
+                <th>Severity</th>
+                <th>Affected Asset</th>
+                <th>Linked Risk</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="cs-vulns-tbody"></tbody>
+          </table>
         </div>
       </div>
-    </section>
+    </div>
+
+    <!-- DETAILED SUBVIEW 5: REPORTS & BACKUP -->
+    <div class="cs-subview" id="cs-view-reports">
+      <div class="cs-table-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <div>
+            <h2 style="font-size: 16px; font-weight: 700; color: #fff;">📄 Executive Audit Reports & SQLite Database Backup</h2>
+            <p style="font-size: 11.5px; color: var(--cs-text-muted);">Instant zero-dependency local database snapshots and executive briefing summaries.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="cs-btn cs-btn-primary" onclick="CyberDashboard.backupDatabase()">💾 Backup SQLite Database</button>
+            <a href="/api/riskguard/reports/csv" class="cs-btn">📥 Download CSV</a>
+            <button class="cs-btn" onclick="CyberDashboard.switchView('console')">⬅️ Back to Console</button>
+          </div>
+        </div>
+
+        <pre id="cs-reports-preview" style="background: rgba(4, 8, 22, 0.85); border: 1px solid rgba(30, 64, 140, 0.5); padding: 18px; border-radius: 10px; font-family: var(--font-mono); font-size: 12px; color: #94a3b8; white-space: pre-wrap; overflow-x: auto;">
+Loading executive report briefing...
+        </pre>
+      </div>
+    </div>
 
   </div>
 
-  <!-- MODAL 1: TELEMETRY NODE DETAILS (RADAR HUD CLICK) -->
-  <div id="telemetryModal" class="cyber-modal-backdrop">
-    <div class="cyber-modal-card">
-      <div class="cyber-modal-header">
-        <span id="telemetryModalTitle" class="cyber-modal-title">Telemetry Node Details</span>
-        <button class="cyber-modal-close" onclick="window.CyberApp.closeModals()">✕</button>
+  <!-- MODALS -->
+
+  <!-- Quick Risk Modal -->
+  <div class="cs-modal-overlay" id="cs-add-risk-modal" style="display: none;">
+    <div class="cs-modal-dialog">
+      <div class="cs-modal-header">
+        <div style="font-weight: 700; color: #fff; font-size: 14px;">➕ Quick Risk Entry (&lt; 1 Minute)</div>
+        <button style="background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer;" onclick="CyberDashboard.closeModal('cs-add-risk-modal')">&times;</button>
       </div>
-      <div class="cyber-modal-body">
-        <div id="telemetryModalContent"></div>
-      </div>
-      <div class="cyber-modal-footer">
-        <button class="btn-secondary" onclick="window.CyberApp.closeModals()">Close</button>
-        <button id="telemetryActionBtn" class="btn-primary">Apply Defensive Policy</button>
-      </div>
+      <form onsubmit="CyberDashboard.submitAddRisk(event)">
+        <div class="cs-modal-body">
+          <div class="cs-form-group">
+            <label>Risk Title *</label>
+            <input type="text" id="cs-modal-risk-title" required placeholder="e.g. Remote Code Execution in Database Cluster" />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="cs-form-group">
+              <label>Category</label>
+              <select id="cs-modal-risk-cat">
+                <option>Technical Security</option>
+                <option>Identity & Access</option>
+                <option>Cloud Security</option>
+                <option>Endpoint Security</option>
+              </select>
+            </div>
+            <div class="cs-form-group">
+              <label>Affected Asset</label>
+              <input type="text" id="cs-modal-risk-assets" placeholder="e.g. Production Database Host" />
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="cs-form-group">
+              <label>Likelihood (1-5)</label>
+              <select id="cs-modal-risk-lh">
+                <option value="1">1 - Rare</option>
+                <option value="2">2 - Unlikely</option>
+                <option value="3" selected>3 - Possible</option>
+                <option value="4">4 - Likely</option>
+                <option value="5">5 - Almost Certain</option>
+              </select>
+            </div>
+            <div class="cs-form-group">
+              <label>Impact (1-5)</label>
+              <select id="cs-modal-risk-imp">
+                <option value="1">1 - Insignificant</option>
+                <option value="2">2 - Minor</option>
+                <option value="3">3 - Moderate</option>
+                <option value="4" selected>4 - Major</option>
+                <option value="5">5 - Catastrophic</option>
+              </select>
+            </div>
+          </div>
+          <div class="cs-form-group">
+            <label>Risk Owner</label>
+            <input type="text" id="cs-modal-risk-owner" value="SecOps Lead" />
+          </div>
+        </div>
+        <div class="cs-modal-footer">
+          <button type="button" class="cs-btn" onclick="CyberDashboard.closeModal('cs-add-risk-modal')">Cancel</button>
+          <button type="submit" class="cs-btn cs-btn-primary">Save Risk</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- MODAL 2: INCIDENT INVESTIGATION & SOAR ACTION -->
-  <div id="incidentModal" class="cyber-modal-backdrop">
-    <div class="cyber-modal-card">
-      <div class="cyber-modal-header">
-        <span id="incidentModalTitle" class="cyber-modal-title">Security Incident Investigation</span>
-        <button class="cyber-modal-close" onclick="window.CyberApp.closeModals()">✕</button>
+  <!-- 1-Click Escalation Modal -->
+  <div class="cs-modal-overlay" id="cs-escalate-modal" style="display: none;">
+    <div class="cs-modal-dialog">
+      <div class="cs-modal-header">
+        <div style="font-weight: 700; color: #fff; font-size: 14px;">⚡ Escalate Finding to Enterprise Risk</div>
+        <button style="background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer;" onclick="CyberDashboard.closeModal('cs-escalate-modal')">&times;</button>
       </div>
-      <div class="cyber-modal-body">
-        <div id="incidentModalContent"></div>
-      </div>
-      <div class="cyber-modal-footer">
-        <button class="btn-secondary" onclick="window.CyberApp.closeModals()">Dismiss</button>
-        <button id="incidentTriageBtn" class="btn-secondary" style="color: #0284c7;">Mark Triaged</button>
-        <button id="incidentIsolateBtn" class="btn-primary">🛡️ Contain & Isolate</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 3: CUSTOM SAST RULE CREATOR -->
-  <div id="customRuleModal" class="cyber-modal-backdrop">
-    <div class="cyber-modal-card">
-      <div class="cyber-modal-header">
-        <span class="cyber-modal-title">➕ Add Custom SAST Vulnerability Rule</span>
-        <button class="cyber-modal-close" onclick="window.CyberApp.closeModals()">✕</button>
-      </div>
-      <div class="cyber-modal-body">
-        <div class="cyber-form-group">
-          <label class="cyber-form-label">Rule Identifier</label>
-          <input id="ruleFormId" type="text" class="cyber-form-input" placeholder="e.g. CUST-001">
-        </div>
-        <div class="cyber-form-group">
-          <label class="cyber-form-label">Rule Title / Name</label>
-          <input id="ruleFormName" type="text" class="cyber-form-input" placeholder="e.g. Insecure Internal API Token">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div class="cyber-form-group">
-            <label class="cyber-form-label">Severity</label>
-            <select id="ruleFormSeverity" class="cyber-form-select">
-              <option value="CRITICAL">CRITICAL</option>
-              <option value="HIGH" selected>HIGH</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="LOW">LOW</option>
+      <form onsubmit="CyberDashboard.submitEscalate(event)">
+        <input type="hidden" id="cs-esc-vuln-id" />
+        <div class="cs-modal-body">
+          <div class="cs-form-group">
+            <label>Auto-Generated Risk Title</label>
+            <input type="text" id="cs-esc-title" required />
+          </div>
+          <div class="cs-form-group">
+            <label>Category</label>
+            <select id="cs-esc-cat">
+              <option>Technical Security</option>
+              <option>Endpoint Vulnerability</option>
+              <option>Compliance Violation</option>
             </select>
           </div>
-          <div class="cyber-form-group">
-            <label class="cyber-form-label">CWE Mapping</label>
-            <input id="ruleFormCWE" type="text" class="cyber-form-input" placeholder="e.g. CWE-798">
-          </div>
+          <p style="font-size: 11.5px; color: var(--cs-text-muted);">
+            Escalating will automatically calculate inherent risk score, map CIS & ISO controls, link to affected assets, and generate a remediation task.
+          </p>
         </div>
-        <div class="cyber-form-group">
-          <label class="cyber-form-label">Regex Pattern</label>
-          <input id="ruleFormRegex" type="text" class="cyber-form-input" placeholder="e.g. (?i)(internal_token|corp_secret)\s*=\s*['&quot;][a-z0-9]{16,}">
+        <div class="cs-modal-footer">
+          <button type="button" class="cs-btn" onclick="CyberDashboard.closeModal('cs-escalate-modal')">Cancel</button>
+          <button type="submit" class="cs-btn cs-btn-primary">⚡ Confirm Escalation</button>
         </div>
-        <div class="cyber-form-group">
-          <label class="cyber-form-label">Remediation Guidance</label>
-          <input id="ruleFormRemedy" type="text" class="cyber-form-input" placeholder="e.g. Inject token from environment secret.">
-        </div>
-      </div>
-      <div class="cyber-modal-footer">
-        <button class="btn-secondary" onclick="window.CyberApp.closeModals()">Cancel</button>
-        <button class="btn-primary" onclick="window.CyberApp.submitCustomRule()">Register Rule</button>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- Global Toast Notification -->
-  <div id="globalToast" class="toast-notification">🌿 CyberSpring Notification</div>
-
-  <!-- Scripts -->
-  <script src="js/radar.js"></script>
-  <script src="js/terminal.js"></script>
-  <script src="js/sast.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/cyberspring-dashboard.js"></script>
 </body>
 </html>

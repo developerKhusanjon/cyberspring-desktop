@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiskGuard Desktop — Lightweight Risk Management & Endpoint Security</title>
+  <link rel="stylesheet" href="css/riskguard.css">
+</head>
+<body>
+  <div class="rg-app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="rg-sidebar" id="rg-sidebar">
+      <div class="rg-sidebar-header">
+        <div class="rg-logo-group">
+          <div class="rg-logo-icon">🛡️</div>
+          <div>
+            <div class="rg-logo-title" id="rg-top-product-title">RiskGuard</div>
+            <div class="rg-logo-subtitle">Desktop Security & GRC</div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="rg-nav-list">
+        <div class="rg-nav-item active" data-view="overview">
+          <span class="rg-nav-icon">📊</span>
+          <span>Overview</span>
+        </div>
+        <div class="rg-nav-item" data-view="risks">
+          <span class="rg-nav-icon">⚠️</span>
+          <span>Risk Register</span>
+          <span class="rg-nav-badge" id="rg-nav-badge-risks">5</span>
+        </div>
+        <div class="rg-nav-item" data-view="assessment">
+          <span class="rg-nav-icon">🧭</span>
+          <span>Risk Assessment</span>
+        </div>
+        <div class="rg-nav-item" data-view="assets">
+          <span class="rg-nav-icon">📦</span>
+          <span>Asset Inventory</span>
+        </div>
+        <div class="rg-nav-item" data-view="endpoints">
+          <span class="rg-nav-icon">💻</span>
+          <span>Endpoint Security</span>
+        </div>
+        <div class="rg-nav-item" data-view="vulnerabilities">
+          <span class="rg-nav-icon">🔍</span>
+          <span>Vulnerabilities</span>
+        </div>
+        <div class="rg-nav-item" data-view="incidents">
+          <span class="rg-nav-icon">🚨</span>
+          <span>Alerts & Incidents</span>
+        </div>
+        <div class="rg-nav-item" data-view="compliance">
+          <span class="rg-nav-icon">📜</span>
+          <span>Compliance & GRC</span>
+        </div>
+        <div class="rg-nav-item" data-view="reports">
+          <span class="rg-nav-icon">📈</span>
+          <span>Reports & Audits</span>
+        </div>
+        <div class="rg-nav-item" data-view="settings">
+          <span class="rg-nav-icon">⚙️</span>
+          <span>Settings & Backup</span>
+        </div>
+
+        <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--rg-border-subtle);">
+          <a href="/" class="rg-nav-item" style="color: #38bdf8;">
+            <span class="rg-nav-icon">🌿</span>
+            <span>Switch to CyberSpring SOC</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="rg-main-area">
+      
+      <!-- Top Navigation Bar -->
+      <header class="rg-topbar">
+        <div class="rg-search-box">
+          <span>🔍</span>
+          <input type="text" id="rg-global-search" placeholder="Search risks, endpoints, CVEs, or controls (Ctrl+K)..." />
+        </div>
+
+        <div class="rg-topbar-actions">
+          <div class="rg-pill-badge rg-badge-sample" id="rg-workspace-badge">
+            <span style="font-size: 8px;">●</span> Sample Workspace (Demo Data)
+          </div>
+          <button class="rg-btn rg-btn-primary" onclick="RiskGuard.openQuickCreateRisk()">
+            <span>➕</span>
+            <span>New Risk</span>
+          </button>
+          <button class="rg-btn rg-btn-secondary" id="rg-theme-toggle" title="Toggle Light/Dark Theme">
+            🌙
+          </button>
+          <button class="rg-btn rg-btn-secondary" style="color: #ef4444; border-color: rgba(239,68,68,0.3);" title="Down / Stop Local Server" onclick="fetch('/api/shutdown', {method:'POST'}).then(() => alert('Server down.'))">
+            🛑 Down
+          </button>
+        </div>
+      </header>
+
+      <!-- 1. OVERVIEW VIEW -->
+      <section class="rg-view-content active" id="rg-view-overview">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h1 class="text-xl font-bold text-slate-100">Enterprise Security Posture & Risk Overview</h1>
+            <p class="text-xs text-slate-400">Live operational telemetry, risk matrix, and critical compliance items requiring attention.</p>
+          </div>
+        </div>
+
+        <!-- 8 Stat Cards Grid -->
+        <div class="rg-grid-4">
+          <div class="rg-stat-card">
+            <span class="rg-stat-title">Open Risks</span>
+            <span class="rg-stat-val" id="rg-kpi-open-risks">0</span>
+            <span class="rg-stat-sub">Active in Register</span>
+          </div>
+          <div class="rg-stat-card">
+            <span class="rg-stat-title">Critical Severity</span>
+            <span class="rg-stat-val text-red-400" id="rg-kpi-crit-risks">0</span>
+            <span class="rg-stat-sub">Score &ge; 20</span>
+          </div>
+          <div class="rg-stat-card">
+            <span class="rg-stat-title">Exceeding Appetite</span>
+            <span class="rg-stat-val text-amber-400" id="rg-kpi-appetite">0</span>
+            <span class="rg-stat-sub">Threshold &gt; 12</span>
+          </div>
+          <div class="rg-stat-card">
+            <span class="rg-stat-title">Healthy Endpoints</span>
+            <span class="rg-stat-val text-emerald-400" id="rg-kpi-endpoints">0/0</span>
+            <span class="rg-stat-sub">Firewall & EDR Pass</span>
+          </div>
+          <div class="rg-stat-card">
+            <span class="rg-stat-title">Open Vulnerabilities</span>
+            <span class="rg-stat-val" id="rg-kpi-vulns">0</span>
+            <span class="rg-stat-sub">CVE Findings</span>
+          </div>
+          <div class="rg-stat-card">
+            <span class="rg-stat-title">Active Incidents</span>
+            <span class="rg-stat-val text-amber-400" id="rg-kpi-incidents">0</span>
+            <span class="rg-stat-sub">Under Investigation</span>
+          </div>
+          <div class="rg-stat-card">
+            <span class="rg-stat-title">Overdue Actions</span>
+            <span class="rg-stat-val text-red-400" id="rg-kpi-actions">0</span>
+            <span class="rg-stat-sub">Past Deadline</span>
+          </div>
+          <div class="rg-stat-card">
+            <span class="rg-stat-title">Compliance Coverage</span>
+            <span class="rg-stat-val text-blue-400" id="rg-kpi-compliance">0%</span>
+            <span class="rg-stat-sub">ISO / NIST / CIS / SOC2</span>
+          </div>
+        </div>
+
+        <!-- 5x5 Heatmap Matrix -->
+        <div class="rg-heatmap-container">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>🎯</span>
+              <span>Interactive 5&times;5 Risk Heatmap (Likelihood &times; Impact)</span>
+            </div>
+            <div class="text-xs text-slate-400">Click any matrix cell to filter corresponding risks in the register.</div>
+          </div>
+          <div class="rg-heatmap-grid" id="rg-heatmap-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Needs Attention Feed -->
+        <div class="rg-card">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>⚠️</span>
+              <span>Needs Immediate Attention</span>
+            </div>
+          </div>
+          <div id="rg-needs-attention-list" class="flex flex-col gap-2">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. RISK REGISTER VIEW -->
+      <section class="rg-view-content" id="rg-view-risks">
+        <div class="rg-card">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>📋</span>
+              <span>Enterprise Risk Register</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="rg-btn rg-btn-primary rg-btn-sm" onclick="RiskGuard.openQuickCreateRisk()">➕ New Risk</button>
+              <a href="/api/riskguard/reports/csv" class="rg-btn rg-btn-secondary rg-btn-sm">📥 Export CSV</a>
+            </div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="rg-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Title & Weakness</th>
+                  <th>Category</th>
+                  <th>Inherent Risk</th>
+                  <th>Residual</th>
+                  <th>Treatment</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rg-risks-tbody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. GUIDED 8-STEP RISK ASSESSMENT WIZARD -->
+      <section class="rg-view-content" id="rg-view-assessment">
+        <div class="rg-card" style="max-width: 800px; margin: 0 auto;">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>🧭</span>
+              <span>Guided 8-Step Risk Assessment Wizard</span>
+            </div>
+            <div id="rg-wizard-score-preview" class="text-xs font-mono font-bold text-amber-400">
+              Medium (9 pts)
+            </div>
+          </div>
+
+          <!-- Stepper Indicator -->
+          <div class="rg-stepper">
+            <div class="rg-stepper-step active" onclick="RiskGuard.setWizardStep(1)">
+              <div class="rg-step-num">1</div>
+              <span class="rg-step-label">Asset</span>
+            </div>
+            <div class="rg-stepper-step" onclick="RiskGuard.setWizardStep(2)">
+              <div class="rg-step-num">2</div>
+              <span class="rg-step-label">Threat</span>
+            </div>
+            <div class="rg-stepper-step" onclick="RiskGuard.setWizardStep(3)">
+              <div class="rg-step-num">3</div>
+              <span class="rg-step-label">Cause</span>
+            </div>
+            <div class="rg-stepper-step" onclick="RiskGuard.setWizardStep(4)">
+              <div class="rg-step-num">4</div>
+              <span class="rg-step-label">Likelihood</span>
+            </div>
+            <div class="rg-stepper-step" onclick="RiskGuard.setWizardStep(5)">
+              <div class="rg-step-num">5</div>
+              <span class="rg-step-label">Impact</span>
+            </div>
+            <div class="rg-stepper-step" onclick="RiskGuard.setWizardStep(6)">
+              <div class="rg-step-num">6</div>
+              <span class="rg-step-label">Controls</span>
+            </div>
+            <div class="rg-stepper-step" onclick="RiskGuard.setWizardStep(7)">
+              <div class="rg-step-num">7</div>
+              <span class="rg-step-label">Action</span>
+            </div>
+            <div class="rg-stepper-step" onclick="RiskGuard.setWizardStep(8)">
+              <div class="rg-step-num">8</div>
+              <span class="rg-step-label">Review</span>
+            </div>
+          </div>
+
+          <!-- Wizard Body -->
+          <div id="rg-wizard-body" class="my-6">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Wizard Navigation Buttons -->
+          <div class="flex items-center justify-between border-t border-slate-700/60 pt-4">
+            <button class="rg-btn rg-btn-secondary" onclick="RiskGuard.prevWizardStep()">← Previous</button>
+            <button class="rg-btn rg-btn-primary" onclick="RiskGuard.nextWizardStep()">Continue →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ASSET INVENTORY VIEW -->
+      <section class="rg-view-content" id="rg-view-assets">
+        <div class="rg-card">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>📦</span>
+              <span>IT & Cloud Asset Inventory</span>
+            </div>
+            <div class="text-xs text-slate-400">Track computers, servers, cloud infrastructure, and business applications.</div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="rg-table">
+              <thead>
+                <tr>
+                  <th>Asset Name & Host</th>
+                  <th>Type</th>
+                  <th>Criticality</th>
+                  <th>Owner</th>
+                  <th>Environment</th>
+                  <th>Correlations</th>
+                </tr>
+              </thead>
+              <tbody id="rg-assets-tbody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. ENDPOINT SECURITY VIEW -->
+      <section class="rg-view-content" id="rg-view-endpoints">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h1 class="text-xl font-bold text-slate-100">Endpoint Security Posture & Managed Devices</h1>
+            <p class="text-xs text-slate-400">Live Stage A local computer inspection (Firewall, FileVault/BitLocker, Antivirus, Kernel) & enrolled devices.</p>
+          </div>
+          <button class="rg-btn rg-btn-primary" id="rg-btn-inspect-local" onclick="RiskGuard.runLocalMachineInspection()">
+            🔄 Run Local Posture Audit
+          </button>
+        </div>
+        <div id="rg-endpoints-list">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- 6. VULNERABILITIES VIEW (With Cross-Module Escalation) -->
+      <section class="rg-view-content" id="rg-view-vulnerabilities">
+        <div class="rg-card">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>🔍</span>
+              <span>Vulnerability Findings & CVE Register</span>
+            </div>
+            <div class="text-xs text-slate-400">Cross-module correlation: 1-click escalate finding to Risk, Compliance, and Remediation Task.</div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="rg-table">
+              <thead>
+                <tr>
+                  <th>CVE ID</th>
+                  <th>Title & Affected Component</th>
+                  <th>Severity</th>
+                  <th>Affected Asset</th>
+                  <th>Linked Risk</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="rg-vulns-tbody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. ALERTS & INCIDENTS VIEW -->
+      <section class="rg-view-content" id="rg-view-incidents">
+        <div class="rg-card">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>🚨</span>
+              <span>Security Incidents Queue</span>
+            </div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="rg-table">
+              <thead>
+                <tr>
+                  <th>Incident Code</th>
+                  <th>Title & Telemetry</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Containment</th>
+                  <th>Lead Investigator</th>
+                </tr>
+              </thead>
+              <tbody id="rg-incidents-tbody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. COMPLIANCE & GRC VIEW -->
+      <section class="rg-view-content" id="rg-view-compliance">
+        <div class="rg-card">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>📜</span>
+              <span>Governance, Risk & Compliance (GRC) Catalogs</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 mb-4" id="rg-frameworks-tabs">
+            <!-- Framework buttons rendered by JS -->
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="rg-table">
+              <thead>
+                <tr>
+                  <th>Control ID</th>
+                  <th>Control Requirement</th>
+                  <th>Domain</th>
+                  <th>Implementation Status</th>
+                  <th>Mapped Risks</th>
+                </tr>
+              </thead>
+              <tbody id="rg-controls-tbody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. REPORTS VIEW -->
+      <section class="rg-view-content" id="rg-view-reports">
+        <div class="rg-card">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>📈</span>
+              <span>Executive Briefing & Audit Reports</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="/api/riskguard/reports/csv" class="rg-btn rg-btn-primary rg-btn-sm">📥 Download CSV</a>
+              <a href="/api/riskguard/reports/markdown" class="rg-btn rg-btn-secondary rg-btn-sm">📄 Download Markdown</a>
+            </div>
+          </div>
+          <pre id="rg-reports-preview" style="background: var(--rg-surface-hover); padding: 18px; border-radius: 8px; font-family: monospace; font-size: 12px; color: var(--rg-text); overflow-x: auto; white-space: pre-wrap;">
+Loading briefing...
+          </pre>
+        </div>
+      </section>
+
+      <!-- 10. SETTINGS & BACKUP VIEW -->
+      <section class="rg-view-content" id="rg-view-settings">
+        <div class="rg-card" style="max-width: 650px;">
+          <div class="rg-card-header">
+            <div class="rg-card-title">
+              <span>⚙️</span>
+              <span>Application Settings & SQLite Durability</span>
+            </div>
+          </div>
+          <form onsubmit="RiskGuard.saveSettings(event)" class="flex flex-col gap-4">
+            <div class="rg-form-group">
+              <label>Application / Product Name</label>
+              <input type="text" id="rg-set-product-name" value="RiskGuard Desktop" />
+            </div>
+            <div class="rg-form-group">
+              <label>Risk Appetite Threshold (Score > Threshold triggers alert)</label>
+              <input type="number" id="rg-set-appetite" min="1" max="25" value="12" />
+            </div>
+            <button type="submit" class="rg-btn rg-btn-primary">Save Settings</button>
+          </form>
+
+          <div class="border-t border-slate-700/60 my-6 pt-4">
+            <h3 class="text-sm font-bold text-slate-200 mb-2">💾 Database Backup & Workspace Mode</h3>
+            <p class="text-xs text-slate-400 mb-4">RiskGuard stores all records locally in an encrypted/WAL-mode SQLite database at <code>~/.riskguard/riskguard.db</code>.</p>
+            <div class="flex items-center gap-3">
+              <button class="rg-btn rg-btn-secondary" onclick="RiskGuard.triggerBackup()">💾 Backup SQLite Database</button>
+              <button class="rg-btn rg-btn-secondary text-amber-400" onclick="RiskGuard.clearSampleWorkspace()">🧹 Clear Sample Data (Clean Mode)</button>
+              <button class="rg-btn rg-btn-secondary" onclick="RiskGuard.seedSampleWorkspace()">🌱 Reload Sample Workspace</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Quick Create Risk Modal -->
+  <div class="rg-modal-backdrop" id="rg-quick-risk-modal" style="display: none;">
+    <div class="rg-modal">
+      <div class="rg-modal-header">
+        <div class="font-bold text-slate-100">➕ Quick Risk Entry (&lt; 1 Minute)</div>
+        <button class="text-slate-400 hover:text-white" onclick="RiskGuard.closeModal('rg-quick-risk-modal')">&times;</button>
+      </div>
+      <form onsubmit="RiskGuard.submitQuickRisk(event)">
+        <div class="rg-modal-body">
+          <div class="rg-form-group">
+            <label>Risk Title *</label>
+            <input type="text" id="rg-quick-title" required placeholder="e.g. Unpatched OpenSSL in Production Web Proxy" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rg-form-group">
+              <label>Category</label>
+              <select id="rg-quick-cat">
+                <option>Technical Security</option>
+                <option>Identity & Access</option>
+                <option>Cloud Security</option>
+                <option>Compliance & Governance</option>
+              </select>
+            </div>
+            <div class="rg-form-group">
+              <label>Affected Asset</label>
+              <input type="text" id="rg-quick-assets" placeholder="e.g. Primary DB / VPN Gateway" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rg-form-group">
+              <label>Likelihood (1-5)</label>
+              <select id="rg-quick-lh">
+                <option value="1">1 - Rare</option>
+                <option value="2">2 - Unlikely</option>
+                <option value="3" selected>3 - Possible</option>
+                <option value="4">4 - Likely</option>
+                <option value="5">5 - Almost Certain</option>
+              </select>
+            </div>
+            <div class="rg-form-group">
+              <label>Impact (1-5)</label>
+              <select id="rg-quick-imp">
+                <option value="1">1 - Insignificant</option>
+                <option value="2">2 - Minor</option>
+                <option value="3">3 - Moderate</option>
+                <option value="4" selected>4 - Major</option>
+                <option value="5">5 - Catastrophic</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rg-form-group">
+              <label>Treatment Strategy</label>
+              <select id="rg-quick-treatment">
+                <option selected>Mitigate</option>
+                <option>Accept</option>
+                <option>Transfer</option>
+                <option>Avoid</option>
+              </select>
+            </div>
+            <div class="rg-form-group">
+              <label>Risk Owner</label>
+              <input type="text" id="rg-quick-owner" value="SecOps Lead" />
+            </div>
+          </div>
+        </div>
+        <div class="rg-modal-footer">
+          <button type="button" class="rg-btn rg-btn-secondary" onclick="RiskGuard.closeModal('rg-quick-risk-modal')">Cancel</button>
+          <button type="submit" class="rg-btn rg-btn-primary">Save to Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cross-Module Escalation Modal -->
+  <div class="rg-modal-backdrop" id="rg-escalate-modal" style="display: none;">
+    <div class="rg-modal">
+      <div class="rg-modal-header">
+        <div class="font-bold text-slate-100">⚡ Escalate Finding to Enterprise Risk & Controls</div>
+        <button class="text-slate-400 hover:text-white" onclick="RiskGuard.closeModal('rg-escalate-modal')">&times;</button>
+      </div>
+      <form onsubmit="RiskGuard.submitEscalate(event)">
+        <input type="hidden" id="rg-esc-vuln-id" />
+        <div class="rg-modal-body">
+          <p class="text-xs text-slate-400">
+            This cross-module flow automatically evaluates the vulnerability severity and asset criticality, calculates the inherent risk score, registers an enterprise risk, auto-maps corresponding compliance controls (CIS-7.1 / ISO A.8.8), and generates a 14-day mitigation task.
+          </p>
+          <div class="rg-form-group">
+            <label>Risk Title</label>
+            <input type="text" id="rg-esc-title" required />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rg-form-group">
+              <label>Category</label>
+              <select id="rg-esc-cat">
+                <option selected>Technical Security</option>
+                <option>Compliance & Governance</option>
+                <option>Cloud Security</option>
+              </select>
+            </div>
+            <div class="rg-form-group">
+              <label>Assigned Remediation Owner</label>
+              <input type="text" id="rg-esc-owner" value="SecOps Lead" />
+            </div>
+          </div>
+        </div>
+        <div class="rg-modal-footer">
+          <button type="button" class="rg-btn rg-btn-secondary" onclick="RiskGuard.closeModal('rg-escalate-modal')">Cancel</button>
+          <button type="submit" class="rg-btn rg-btn-primary">Confirm Escalation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/riskguard.js"></script>
+</body>
+</html>

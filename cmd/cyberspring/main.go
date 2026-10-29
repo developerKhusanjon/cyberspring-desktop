@@ -23,12 +23,12 @@ const (
 / /___/ /_/ / /_/ /  __/ /    ___/ / /_/ / /   / / / / / /_/ / 
 \____/\__, /_.___/\___/_/    /____/ .___/_/   /_/_/ /_/\__, /  
      /____/                      /_/                  /____/   
-   Detection Engineering Automation & Controlling Center v1.0
+   🌸 Cyberspring — Safety Monitoring & Risk Intelligence Desktop v2.0
 `
 )
 
 func main() {
-	guiFlag := flag.Bool("gui", true, "Launch CyberSpring Desktop Glassmorphic Controlling Center")
+	guiFlag := flag.Bool("gui", true, "Launch Cyberspring Desktop Suite")
 	portFlag := flag.Int("port", 8787, "Port for embedded web server")
 	scanFlag := flag.String("scan", "", "Path to source code folder for instant SAST vulnerability scan")
 	testFlag := flag.String("test", "", "Path to rule YAML file to test replay fixtures and backtest")
@@ -79,8 +79,8 @@ func main() {
 			}()
 		}
 
-		fmt.Println("🚀 Starting CyberSpring Desktop Controlling Center...")
-		fmt.Printf("🌐 UI Dashboard: %s\n", url)
+		fmt.Println("🚀 Starting Cyberspring Desktop Controlling Center...")
+		fmt.Printf("🌐 Safety Monitoring Dashboard: %s\n", url)
 		fmt.Println("💡 Press Ctrl+C to terminate.")
 
 		if err := server.Start(); err != nil {
